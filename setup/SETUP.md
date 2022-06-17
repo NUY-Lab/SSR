@@ -34,9 +34,9 @@
 
 ### pythonの設定がうまくいっているかの確認
 
-1. 実行ファイル（exeファイル、おそらくGPyM.exeというファイル）を実行
-2. 定義ファイルは`GPyM\Example\define.def`、測定マクロは`test.py`を選択
-3. ちゃんと動いて`GPyM\Example\data`にデータが入っていればOK
+1. 実行ファイル（exeファイル、おそらくSSR.exeというファイル）を実行
+2. 定義ファイルは`SSR\Example\define.def`、測定マクロは`test.py`を選択
+3. ちゃんと動いて`SSR\Example\data`にデータが入っていればOK
 
 このマクロはGPIB通信を行わないのでNIVISAの確認はできない。GPIB通信の確認をするにはマクロで`operation_check`を選択。
 

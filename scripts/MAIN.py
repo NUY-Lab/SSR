@@ -94,7 +94,7 @@ def on_forced_termination(func):
 def split_only():
     print("分割マクロ選択...")
     macroPath = ask_open_filename(
-        filetypes=[("pythonファイル", "*.py *.gpym")], title="分割マクロを選択してください"
+        filetypes=[("pythonファイル", "*.py *.SSR")], title="分割マクロを選択してください"
     )
 
     os.chdir(str(macroPath.parent))

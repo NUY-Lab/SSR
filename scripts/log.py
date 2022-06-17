@@ -18,7 +18,7 @@ def log(text: str):
 def setlog():
     """ログファイルのセット"""
 
-    with (SHARED_VARIABLES.GPYM_SCRIPTSDIR / "log_config.json").open(
+    with (SHARED_VARIABLES.SSR_SCRIPTSDIR / "log_config.json").open(
         mode="r", encoding="utf-8"
     ) as f:
         conf = json.load(f)

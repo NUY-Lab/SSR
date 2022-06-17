@@ -12,7 +12,7 @@ from measurement_manager import (
 
 
 def update():
-    print("今からGPyMのテストを始めます...")
+    print("今からSSRのテストを始めます...")
     time.sleep(1)
 
     print("まずGPIBの動作チェックをします...")
