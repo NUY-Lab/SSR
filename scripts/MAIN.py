@@ -1,3 +1,8 @@
+"""
+最初に呼ばれる処理
+ユーザーの書いたマクロを取得して
+マクロを動かす関数にわたす
+"""
 import ctypes
 import os
 import sys

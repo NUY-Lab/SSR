@@ -23,9 +23,9 @@ def get_macropath():
 
     premacroname = path_premacroname.read_text(encoding="utf-8")
 
-    # SSRは勝手に作った拡張子
+    # .ssrは勝手に作った拡張子
     macropath = ask_open_filename(
-        filetypes=[("pythonファイル", "*.py *.SSR")],
+        filetypes=[("pythonファイル", "*.py *.ssr")],
         title="マクロを選択してください",
         initialdir=str(USER_VARIABLES.MACRODIR),
         initialfile=premacroname,

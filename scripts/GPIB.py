@@ -1,8 +1,6 @@
 """GPIB周りの処理"""
 from logging import getLogger
-
 import pyvisa
-
 from utility import MyException
 
 logger = getLogger(__name__)

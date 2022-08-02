@@ -24,80 +24,69 @@
 
 ## 用語定義
 
-- 測定マクロ: 実際に測定する処理を書いたpythonファイル。拡張子は`.py`か`.SSR`
+- 測定マクロ: 実際に測定する処理を書いたpythonファイル。拡張子は`.py`か`.ssr`
 
 ## 仕様
 
 測定マクロを書くときに注意すること
 
 - インデントはスペース4つ分
+  - これはPythonの仕様
   - 関数やfor文など":"がつく行の次の行は､前の行よりもスペース4つ分インデントを下げる
   - 関数やfor文などの範囲を抜けたらインデントを上げる
-  - タブは使わない（使うとエラーが出る）
+  - タブは使わない（使うとエラーが出る）(visualstudioの拡張機能などを使えばtabでスペース4つを入力できる)
 - update()の関数は絶対に定義すること
-- 関数外の変数（グローバル変数）に代入するときはglobal修飾子をつけて宣言する
+- 関数外の変数（グローバル変数）に代入するときはglobal修飾子をつけて宣言する(Pythonの仕様)
 - それなりに性能の良いPCを持っているならメモ帳以外のエディター（VS Codeなど）で書くことをオススメします
 
 ## 基本仕様
 
-- `start()`、`end()`、`on_command(command)`、`bunkatsu(filepath)`の関数は定義しなくても良いが、逆にスペルミスなどがあってもエラーを吐かない（ログはでる）
-- `bunkatsu(filepath)`を定義した場合には測定データはフォルダーに入り、定義しなければ`DATAPATH`直下に測定データが置かれる
-- `measurementManager`のいくつかの関数は特定の関数内（`start`,`update`など）でしか使えません。詳しくは下の方を見てください
+- `start()`、`end()`、`on_command(command)`、`split(filepath)`、`after(filepath)`の関数は定義しなくても良いが、逆にスペルミスなどがあってもエラーを吐かない（ログはでる）
+- `split(filepath)`を定義した場合には測定データはフォルダーに入り、定義しなければ`DATAPATH`直下に測定データが置かれる
+- `measurement_manager`のいくつかの関数は特定の関数内（`start`,`update`など）でしか使えません。詳しくは下の方を見るか、もしくはコードを直接見てください
 - 入力したファイル名はクリップボードにコピーされる
   - コピーしたくないときはimport時に`mm._copy_prefilename=hoge`とでもしておけばよい（hogeは適当に定義した関数）
-- `SSR_bunkatsu`で`bunkatsu`関数を呼び出した場合に`GPIB.get_instrument`は引数にかかわらず`None`を返すので注意（GPIBケーブルがつながって無くても動くようにするため）
+- `SSR_split`で`split`関数を呼び出した場合に`GPIB.get_instrument`は引数にかかわらず`None`を返すので注意（GPIBケーブルがつながって無くても動くようにするため）
 - 関数外でprintの処理を書くと2回実行される
   - print以外の処理も実は2回ずつ実行されている
   - これはmultiprocessingによって2つのプロセスが走っていることが原因（そのかわりそれぞれの処理は独立しているのでたいていの場合影響はない）
   - 関数外にprint("あああ")などと書くと確認できる
+  - 直せる人いたら誰か直しておいてください
 
 ## 測定の流れ
 
 ```mermaid
 flowchart TB
   A["start"] --> B[update]
-  B --> C{"call mm.finish() ?"}
+  B --> C{"call measurement_manager.finish() ?"}
   C -->|Yes| D[end]
   C -->|No| B
-  D --> E[bunkatsu]
-  E --> F[終了]
+  D --> E[split]
+  E --> F[after]
+  F --> G[終了]
 ```
   
-※`on_command`関数はコマンドを打ち込んでEnterを押したときに実行されます。`on_command`が実行している間`update`は止まります。（詳しくはmeasurementManager.pyの中身を見てください）
+※`on_command`関数はコマンドを打ち込んでEnterを押したときに実行されます。`on_command`が実行している間`update`は止まります。（詳しくはmeasurement_manager.pyの中身を見てください）
   
-※`mm.finish()`を呼ばなければ測定は終了しません
+※`measurement_manager.finish()`を呼ぶか、updateでFalseを返さなければ測定は終了しません
 
 ### 測定と分割の独立
 
 分割の関数はend()の後に改めて呼ばれます｡ 分割に失敗したときなど､分割の処理だけを呼ぶことができます。
 
-### `measurementManager.py (=mm)`について
+### `measurement_manager.py (=mm)`について
 
-measurementManager.pyは測定に必要な主な処理のうち､ 変更の可能性が低い処理をまとめているモジュールです。
+measurement_manager.pyは測定に必要な主な処理のうち､ ユーザー側からよく呼ばれるであろう処理をまとめたモジュールです。
 
 ```python
 # データプロットの関数、update以外の場所から呼ばないでください（startでもいけるかも）
 # x,y (float): プロットする座標
 # label (str | int): ラベル、ラベルごとに色が変わったり線が引かれたりする
-mm.plot_data(x, y, label="default")
+mm.plot(x, y, label="default")
 
 # データ保存、update以外の場所から呼ばないでください（endでもいけるかも）
-# data (tuple): 保存するデータ
-mm.save_data(data)
-
-# キャリブレーションファイルを読み込みます
-# キャリブレーションファイルを変更するときは形式を以前のファイルとそろえてください
-# 基本的に引数は入れずに使います(引数がない場合SHERED_SETTINGS内にあるキャリブレーションファイルを使います)
-# 特別な事情がある場合のみ引数にファイルのパスを設定してください
-# filename (str): キャリブレーションファイルの名前(パス)、入力しなければSHERED_SETTINGSのものを使うので基本的に入力はしない
-# return (str): 使用したキャリブレーションファイル名
-mm.set_calibration(filename=None)
-
-# キャリブレーションファイルから読み取ったデータに基づいて線形補間
-# 使うにはmm.set_calibration_fileを実行しておく必要があります
-# x (float): 入力値
-# return (float): 出力を線形補完したもの
-mm.calibration(x)
+# data (tuple or string): 保存するデータ
+mm.save(data)
 
 # プロットの設定、startで呼ぶ
 # line (bool): 点を線でつなぐかどうか                  
@@ -111,29 +100,22 @@ mm.set_plot_info(line=False, xlog=False, ylog=False, renew_interval=1, legend=Fa
 # label (str): ラベルの文字
 mm.set_label(label)
 
+#ファイルに任意の文字列を書き込み
+#元々はset_labelしかなかったがあとからこれを追加
+#set_labelでできることはこれでもできる(はず)
+#text (str): 書き込む文字列
+mm.write_file(text)
+
 # 測定を終わらせる関数、startで呼ぶとエラーになる（はず）
 mm.finish()
 
-# tempフォルダーのパスを返す、使いたければどうぞ
-# return (str): tempフォルダーのパス
-mm.get_tempdir()
+#プロット画面を出さないときに呼ぶ
+mm.no_plot()
 
-# dataフォルダーのパスを返す、使いたければどうぞ
-# return (str): dataフォルダーのパス
-mm.get_datadir()
-
-# 共有設定フォルダーのパスを返す、これを使うときは既にあるファイル名とかぶらないように注意！
-# return (str): 共有設定フォルダーのパス
-mm.get_shared_settings_dir()
-
-# 測定を繰り返すことができる、グローバル変数は初期化されない
-# closewindow (bool): グラフウィンドウを閉じるかどうか
-mm.repeat_measurement(closewindow=True)
 ```
-
-### bunkatsuModule.py(=bu)について
-
+### split.py(=split)について
 ```python
+
 # ファイルを開いてデータを配列で返す
 # filepath (str): 開くファイルのパス
 # return
@@ -141,7 +123,7 @@ mm.repeat_measurement(closewindow=True)
 #   filename: filepathのファイルの名前
 #   dirpath: filapathの親フォルダ
 #   label: ファイルの中身のうち数字でないもの  
-bu.file_open(filepath)
+split.file_open(filepath)
 
 # 昇温/降温で分割
 # data (list[list]): データ
@@ -149,25 +131,25 @@ bu.file_open(filepath)
 # sample_num (int): 温度変化を評価するサンプル数
 # threshold (float): 温度変化を評価する閾値
 # return (list[list]): 1つ1つの要素が分割されたデータ配列になっている
-bu.heating_cooling_split(data, T_index, sample_num=150, threshold=0.7)
+split.heating_cooling_split(data, T_index, sample_num=150, threshold=0.7)
 
 # 周期的に分割
 # data (list[list]): データ
 # cycle_num: 分割の周期
 # return (list[list]): 1つ1つの要素が分割されたデータ配列になっている
-bu.cyclic_split(data, cycle_num)返値:
+split.cyclic_split(data, cycle_num)返値:
 
 # 新規ファイル作成
 # filepath (str): 新しく作成するファイルのパス
 # data (list[list]): ファイルに書き込むデータ
 # label (str): ファイル先頭につけるラベル
-bu.create_file(filepath, data, label):        
+split.create_file(filepath, data, label):        
 
 # 数値→文字変換（例 10000 → 10E4.0）
 # num (int | float): 変換する数字
 # significant_digits (int): 有効数字
 # return (str): 変換した文字列
-bu.from_num_to_10Exx(num, significant_digits=2):      
+split.from_num_to_10Exx(num, significant_digits=2):      
 
 # TMR用の分割関数
 # filepath (str): 分割するファイルのパス
@@ -175,13 +157,74 @@ bu.from_num_to_10Exx(num, significant_digits=2):
 # f_index (int): 周波数が入っている場所（0始まり）
 # freq_num (int): 測定周波数の数
 # threshold (float): 温度変化の閾値、うまく分割できないときなどに設定してください  
-bu.TMR_bunkatsu(filepath, T_index, f_index, freq_num=16, threshold=0)
+split.TMR_split(filepath, T_index, f_index, freq_num=16, threshold=0)
 ```
 
-### utilityModuleについて
+### calibration.pyについて
+主にTMRの抵抗-温度変換の線形補間を行う
 
 ```python
-# 基本的にはprint、inputと同じだがこれを使うとTEMPフォルダーのLOG.txtにログが残る
+#キャリブレーションを任せるクラス
+#これのインスタンスを呼び出して使う
+TMRCalibrationManager : class
+
+  # キャリブレーションファイルを共有フォルダから取得してインスタンスにセット
+  TMRCalibrationManager.set_shared_calib_file()
+
+  # 自分で指定したキャリブレーションファイルをインスタンスにセット
+  TMRCalibrationManager.set_own_calib_file()
+
+  # プラチナ温度計の抵抗値xに対応する温度yを線形補間で返す
+  TMRCalibrationManager.calibration(x: float)
+
+```
+
+
+### variables.pyについて
+共有変数を格納しておくところ
+set_xxxで変数の格納、
+xxxで呼び出し
+
+```python
+
+
+# 各ユーザーがそれぞれ個別に持つ変数を持つクラス
+variables.USER_VARIABLES :class
+
+  #ユーザー一時フォルダのパス
+  variables.USER_VARIABLES.TEMPDIR : Path
+  #変数格納(以下では省略)
+  variables.USER_VARIABLES.set_TEMPDIR(value: Path) 
+
+  #データ保存フォルダのパス
+  variables.USER_VARIABLES.TEMPDIR : Path
+
+  #測定マクロのフォルダのパス
+  variables.USER_VARIABLES.TEMPDIR : Path
+
+
+# ユーザー間で共通してもつ変数
+variables.SHARED_VARIABLES : class
+
+  # 共有設定が保存されるフォルダのパス
+  variables.SHARED_VARIABLES.SETTINGDIR
+
+  # 一時フォルダのパス
+  variables.SHARED_VARIABLES.TEMPDIR
+
+  # SSRのコードがあるフォルダのパス
+  # ユーザー側から触ることはまずない
+  variables.SHARED_VARIABLES.SSR_SCRIPTSDIR
+
+  # SSR本体の存在するフォルダのパス
+  # ユーザー側から触ることはまずない
+  variables.SHARED_VARIABLES.SSR_HOMEDIR
+
+  # 共有ログのあるフォルダのパス
+  variables.SHARED_VARIABLES.LOGDIR
+
+
+```
 
 
 ## FAQ

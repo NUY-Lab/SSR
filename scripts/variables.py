@@ -1,8 +1,6 @@
 """共有度の高い変数を置いておく"""
 from pathlib import Path
-
 from utility import MyException
-
 
 class VariablesError(MyException):
     """変数関係のエラー"""
