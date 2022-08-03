@@ -169,13 +169,40 @@ split.TMR_split(filepath, T_index, f_index, freq_num=16, threshold=0)
 TMRCalibrationManager : class
 
   # キャリブレーションファイルを共有フォルダから取得してインスタンスにセット
+  # キャリブレーションファイルを変更するときは形式を以前のファイルとそろえてください
   TMRCalibrationManager.set_shared_calib_file()
 
   # 自分で指定したキャリブレーションファイルをインスタンスにセット
+  # 特別な事情がある場合のみ使用してください
   TMRCalibrationManager.set_own_calib_file()
 
   # プラチナ温度計の抵抗値xに対応する温度yを線形補間で返す
   TMRCalibrationManager.calibration(x: float)
+
+```
+
+### GPIB.pyについて
+GPIBケーブルで繋がった機器にコマンドを送信する
+
+```python
+
+# 機器の取得
+# adress:int or str 機器のGPIB番号
+# inst型のインスタンスを返す(型が不明なので便宜上inst型と命名)
+get_instrument(adress) :inst
+
+# 返り値のあるコマンドを送信して、返り値を受け取る
+# command: str コマンド
+inst.query(command):str
+
+# 機器にコマンドを送信する
+# command: str コマンド
+inst.write(command):Unit
+
+# 機器からの応答を受け取る
+# inst.write(comannd) -> inst.read() は inst.queryと(ほぼ)同じ
+inst.read() :str
+
 
 ```
 
@@ -231,7 +258,8 @@ variables.SHARED_VARIABLES : class
 
 ### SSR.exeの中身は何か?
 
-とくに変更がなければSSR.batを実行しているので、SSR.batを変更するとSSR.exeの挙動も変わる
+とくに変更がなければstartup.batを実行しています。
+startup.batはMAIN.pyを実行しています。
 
 ### プロットの色を変えたい
 

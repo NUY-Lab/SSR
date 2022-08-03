@@ -2,6 +2,7 @@
 import os
 from logging import getLogger
 from pathlib import Path
+from typing import Callable, Optional
 
 from scipy import interpolate
 
@@ -9,7 +10,6 @@ from utility import MyException, get_encode_type
 from variables import SHARED_VARIABLES
 
 logger = getLogger(__name__)
-
 
 class CalibrationError(MyException):
     """キャリブレーション関連のエラー"""
@@ -34,16 +34,16 @@ class TMRCalibrationManager:
     """
 
     calib_file_name: str
-    interpolate_func = None
+    interpolate_func: Optional[Callable[[float], float]] = None  # 変換の関数
 
-    def set_shared_calib_file(self):
+    def set_shared_calib_file(self) -> None:
         """キャリブレーションファイルを共有フォルダから取得してインスタンスにセット"""
         path = SHARED_VARIABLES.SETTINGDIR / "calibration_file"
         if not path.is_dir():
             path.mkdir()
         import glob
 
-        files = glob.glob(str(path) + "/*")
+        files: list[str] = glob.glob(str(path) + "/*")
 
         files = list(
             filter(lambda f: os.path.split(f)[1][0] != "_")
@@ -56,10 +56,10 @@ class TMRCalibrationManager:
                 str(path)
                 + "内に2つ以上のキャリブレーションファイルを置いてはいけません。古いファイルの戦闘にはアンダーバー'_'をつけてください"
             )
-        filepath_calib = files[0]
-        self.__set(filepath_calib)
+        filepath_calib: str = files[0]
+        self.__set(Path(filepath_calib))
 
-    def set_own_calib_file(self, filepath_calib: str):
+    def set_own_calib_file(self, filepath_calib: str) -> None:
         """自分で指定したキャリブレーションファイルをインスタンスにセット"""
         if not os.path.isfile(filepath_calib):
             raise CalibrationError(
@@ -71,9 +71,9 @@ class TMRCalibrationManager:
                 + filepath_calib
                 + "'にアクセスしようとしましたが存在しませんでした."
             )
-        self.__set(filepath_calib)
+        self.__set(Path(filepath_calib))
 
-    def __set(self, filepath_calib: Path):  # プラチナ温度計の抵抗値を温度に変換するためのファイルを読み込み
+    def __set(self, filepath_calib: Path) -> None:  # プラチナ温度計の抵抗値を温度に変換するためのファイルを読み込み
         """
         キャリブレーションファイルの2列目をx,1列目をyとして線形補間関数を作る.
 
@@ -128,7 +128,7 @@ class TMRCalibrationManager:
             x, y, fill_value="extrapolate"
         )  # 線形補間関数定義
 
-    def calibration(self, x: float):
+    def calibration(self, x: float) -> float:
         """
         プラチナ温度計の抵抗値xに対応する温度yを線形補間で返す
         """

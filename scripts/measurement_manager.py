@@ -8,6 +8,7 @@ import sys
 import threading
 import time
 from logging import getLogger
+from typing import Optional
 
 import calibration as calib
 from measurement_manager_support import (
@@ -21,25 +22,25 @@ from measurement_manager_support import (
 logger = getLogger(__name__)
 
 
-def start_macro(macro):
+def start_macro(macro) -> None:
     """measurement_manager起動"""
     global _measurement_manager
     _measurement_manager = MeasurementManager(macro)
     _measurement_manager.measure_start()
 
 
-def finish():
+def finish() -> None:
     """測定を終了させる"""
     logger.debug("finish is called")
     _measurement_manager.is_measuring = False
 
 
-def set_file_name(filename):
+def set_file_name(filename: str) -> None:
     """ファイル名をセット"""
     _measurement_manager.file_manager.filename = filename
 
 
-def set_calibration(filepath_calib=None):
+def set_calibration(filepath_calib: Optional[str] = None) -> None:
     """
     この関数は非推奨です。calibration.pyを作ったのでそちらをから呼んでください
     プラチナ温度計の抵抗値を温度に変換するためのファイルを読み込み
@@ -176,7 +177,7 @@ def plot(x, y, label="default"):
         _measurement_manager.plot_agency.plot(x, y, label)
 
 
-def no_plot():
+def no_plot() -> None:
     """プロット画面を出さないときに呼ぶ"""
     if _measurement_manager.state.current_step != MeasurementStep.START:
         logger.warning(sys._getframe().f_code.co_name + "はstart関数内で用いてください")

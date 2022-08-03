@@ -1,6 +1,7 @@
 """定義ファイルの取得や読み込みなど"""
 from logging import getLogger
 from pathlib import Path
+from typing import Optional
 
 from utility import MyException, ask_open_filename, get_encode_type
 from variables import SHARED_VARIABLES, USER_VARIABLES
@@ -12,14 +13,14 @@ class DefineFileError(MyException):
     """定義ファイル関係のエラー"""
 
 
-def get_deffile():
-    """定義ファイルの取得"""
+def get_deffile() -> Path:
+    """定義ファイルのパスの取得"""
     # 前回の定義ファルのパスが保存されているファイル
     path_deffilepath = SHARED_VARIABLES.TEMPDIR / "deffilepath"
     path_deffilepath.touch()
 
     # 前回の定義ファイルのフォルダを開いて定義ファイル選択画面へ
-    predefdir = None
+    predefdir: Optional[str] = None
     predeffilename = None
     predefpath = Path(path_deffilepath.read_text(encoding="utf-8"))
     if predefpath.is_file():
@@ -41,7 +42,7 @@ def get_deffile():
     return defpath
 
 
-def read_deffile():
+def read_deffile() -> None:
     """定義ファイルを読み込んで各フォルダのパスを取得"""
     path_deffile = get_deffile()
     logger.info("define file:%s", path_deffile.stem)

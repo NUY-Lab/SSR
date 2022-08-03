@@ -5,6 +5,7 @@ import math
 import os
 import sys
 from logging import getLogger
+from typing import List
 
 import utility as util
 from utility import MyException
@@ -17,8 +18,12 @@ class SplitError(MyException):
 
 
 def heating_cooling_split(
-    data, T_index, sample_and_cutout_num=(150, 120), step=10, threshold=None
-):
+    data: List[List[float]],
+    T_index: int,
+    sample_and_cutout_num: tuple[int, int] = (150, 120),
+    step: int = 10,
+    threshold: float = None,
+) -> List[List[List[float]]]:
 
     """
     heating,coolingを判断して分割する関数
@@ -119,12 +124,15 @@ def heating_cooling_split(
     return new_data
 
 
-def cyclic_split(data, cycle_num):
+def cyclic_split(data: List, cycle_num: int) -> List[List]:
     """
     周期的に分割
 
     Parameters
     _____________
+
+    data: List[float]
+        分割する配列
 
     cycle_num: int
         分割の周期
@@ -155,7 +163,7 @@ def cyclic_split(data, cycle_num):
     return new_data
 
 
-def from_num_to_10Exx(num, significant_digits=2):
+def from_num_to_10Exx(num: float, significant_digits=2) -> str:
 
     """
     数字を10Exx形式にして文字列として返す
@@ -187,7 +195,7 @@ def from_num_to_10Exx(num, significant_digits=2):
     return index_txt
 
 
-def file_open(filepath):
+def file_open(filepath: str) -> tuple[List[List[float]], str, str, str]:
     """
     ファイルを開いて中身を二次元配列で返す
 
@@ -200,6 +208,15 @@ def file_open(filepath):
     __________
     data : 二次元配列
         ファイルの中身を二次元配列に変換した物
+
+    filename: str
+        開いたファイルの名前
+
+    dirpath: str
+        開いたファイルの存在するフォルダのパス
+
+    label: str
+        ファイル中の数字以外が書いてある行のテキスト
     """
 
     dirpath = os.path.dirname(filepath)  # ファイルのpathからディレクトリ名を取得
@@ -245,7 +262,7 @@ def file_open(filepath):
     return data, filename, dirpath, label
 
 
-def create_file(filepath, data, label=""):
+def create_file(filepath: str, data: List[List], label: str = ""):
     """
     新規ファイル作成. フォルダがない場合は作る
 
@@ -306,13 +323,13 @@ def TMR_bunkatsu(
 
 
 def TMR_split(
-    filepath,
-    T_index,
-    f_index,
-    freq_num=16,
-    sample_and_cutout_num=(150, 120),
-    step=10,
-    threshold=0,
+    filepath: str,
+    T_index: int,
+    f_index: int,
+    freq_num: int = 16,
+    sample_and_cutout_num: tuple[int, int] = (150, 120),
+    step: int = 10,
+    threshold: float = 0,
 ):
     """
     TMR用の分割関数.

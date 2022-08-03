@@ -4,11 +4,13 @@
 
 """
 import time
+from multiprocessing import Lock
+from typing import List, Optional
 
 import matplotlib.pyplot as plt
 
 # 色の配列
-colormap = (
+colormap: tuple[str] = (
     "black",
     "red",
     "green",
@@ -34,7 +36,12 @@ colormap = (
 )
 
 
-def start_plot_window(share_list, isfinish, lock, plot_info):
+def start_plot_window(
+    share_list: List[tuple[float, float, str]],
+    isfinish: bool,
+    lock: Lock,
+    plot_info: dict,
+) -> None:
     """
     別プロセスで最初に実行される場所
     """
@@ -89,7 +96,7 @@ class PlotWindow:
         flowwidth,
         line,
         legend,
-    ):  # コンストラクタ
+    ) -> None:  # コンストラクタ
         self.share_list = share_list
         self.lock = lock
         self.interval = renew_interval
@@ -107,11 +114,11 @@ class PlotWindow:
         if ylog:
             plt.yscale("log")  # 縦軸をlogスケールに
 
-    def run(self):
+    def run(self) -> None:
         """
         プロットの処理をループで回す
         """
-        interval = self.interval
+        interval: int = self.interval
         while True:  # 一定時間ごとに更新
             self.renew_window()
             if self.isfinish.value == 1 or (not plt.get_fignums()):  # 終了していたらbreak
@@ -121,16 +128,16 @@ class PlotWindow:
         if plt.get_fignums():
             plt.show(block=True)
 
-    _count_label = 0
+    _count_label: int = 0
     linedict = {}
-    max_x = None
-    max_y = None
-    min_x = None
-    min_y = None
+    max_x: Optional[float] = None
+    max_y: Optional[float] = None
+    min_x: Optional[float] = None
+    min_y: Optional[float] = None
 
-    def renew_window(self):
+    def renew_window(self) -> None:
         """
-        プロッタ画面の更新で呼ぶ関数
+        プロット画面の更新で呼ぶ関数
         """
         self.lock.acquire()  # 共有リストにロックをかける
         # share_listのコピーを作成.(temp=share_listにすると参照になってしまうのでdel self.share_list[:]でtempも消えてしまう)

@@ -1,6 +1,9 @@
 """GPIB周りの処理"""
 from logging import getLogger
+from typing import Union
+
 import pyvisa
+
 from utility import MyException
 
 logger = getLogger(__name__)
@@ -10,7 +13,7 @@ class GPIBError(MyException):
     """GPIB関係のえらー"""
 
 
-def get_instrument(address):
+def get_instrument(address: Union[int, str]) -> pyvisa.resources.Resource:
     """
     指定されたGPIBアドレスに機器が存在するか調べる(種類は調べない. 何かつながっていればOK)
 

@@ -92,7 +92,7 @@ class SHARED_VARIABLES:
     Proprety
     -----------
     SETTINGDIR:Path
-        共有設定が保存されるフォルダの
+        共有設定が保存されるフォルダのパス
     TEMPDIR:Path
         一時フォルダのパス
     SSR_SCRIPTSDIR:Path
