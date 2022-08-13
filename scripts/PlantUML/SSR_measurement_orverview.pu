@@ -15,7 +15,6 @@
 カレントディレクトリに設定;
 
 fork
-    : Process A;
 
 
 |measurement_manager.py|
