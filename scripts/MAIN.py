@@ -51,11 +51,15 @@ def main() -> None:
     # マクロファイルのパスを取得
     macropath, _, macrodir = get_macropath()
 
-    # マクロファイルをマクロに変換
-    macro = get_macro(macropath)
+    # scriptsフォルダーを検索パスに追加
+    # これがなくても動くっぽいけどわかりやすさのために記述
+    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
     # カレントディレクトリを測定マクロ側に変更
     os.chdir(str(macrodir))
+
+    # マクロファイルをマクロに変換
+    macro = get_macro(macropath)
 
     # 強制終了時の処理を追加
     on_forced_termination(lambda: mm.finish())
