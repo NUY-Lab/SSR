@@ -1,8 +1,6 @@
 """共有度の高い変数を置いておく"""
 from pathlib import Path
-
 from utility import MyException
-
 
 class VariablesError(MyException):
     """変数関係のエラー"""
@@ -94,14 +92,14 @@ class SHARED_VARIABLES:
     Proprety
     -----------
     SETTINGDIR:Path
-        共有設定が保存されるフォルダの
+        共有設定が保存されるフォルダのパス
     TEMPDIR:Path
         一時フォルダのパス
-    GPYM_SCRIPTSDIR:Path
-        GPYMのコードがあるフォルダのパス。
+    SSR_SCRIPTSDIR:Path
+        SSRのコードがあるフォルダのパス。
         ユーザー側から触ることはまずない
-    GPYM_HOMEDIR:Path
-        GPYM本体の存在するフォルダ
+    SSR_HOMEDIR:Path
+        SSR本体の存在するフォルダ
         ユーザー側から触ることはまずない
     LOGDIR:Path
         共有ログのあるフォルダ
@@ -131,16 +129,16 @@ class SHARED_VARIABLES:
     def set_TEMPDIR(cls, value: Path):
         cls.__TEMPDIR.value = value
 
-    __GPYM_SCRIPTSDIR = PathObject()
+    __SSR_SCRIPTSDIR = PathObject()
 
     @classmethod
     @property
-    def GPYM_SCRIPTSDIR(cls) -> Path:
-        return cls.__GPYM_SCRIPTSDIR.value
+    def SSR_SCRIPTSDIR(cls) -> Path:
+        return cls.__SSR_SCRIPTSDIR.value
 
     @classmethod
-    def set_GPYM_SCRIPTSDIR(cls, value: Path):
-        cls.__GPYM_SCRIPTSDIR.value = value
+    def set_SSR_SCRIPTSDIR(cls, value: Path):
+        cls.__SSR_SCRIPTSDIR.value = value
 
     __LOGDIR = PathObject()
 
@@ -153,23 +151,23 @@ class SHARED_VARIABLES:
     def set_LOGDIR(cls, value: Path):
         cls.__LOGDIR.value = value
 
-    __GPYM_HOMEDIR = PathObject()
+    __SSR_HOMEDIR = PathObject()
 
     @classmethod
     @property
-    def GPYM_HOMEDIR(cls) -> Path:
-        return cls.__GPYM_HOMEDIR.value
+    def SSR_HOMEDIR(cls) -> Path:
+        return cls.__SSR_HOMEDIR.value
 
     @classmethod
-    def set_GPYM_HOMEDIR(cls, value: Path):
-        cls.__GPYM_HOMEDIR.value = value
+    def set_SSR_HOMEDIR(cls, value: Path):
+        cls.__SSR_HOMEDIR.value = value
 
 
 def init(home: Path):
     """変数の初期化"""
-    # GPyMフォルダーのパス
+    # SSRフォルダーのパス
 
-    SHARED_VARIABLES.set_GPYM_HOMEDIR(home)
+    SHARED_VARIABLES.set_SSR_HOMEDIR(home)
 
     # 共有TEMPフォルダーのパス
     tempdir = home / "temp"
@@ -184,7 +182,7 @@ def init(home: Path):
     SHARED_VARIABLES.set_SETTINGDIR(settingdir)
 
     # scriptsフォルダーのパス
-    SHARED_VARIABLES.set_GPYM_SCRIPTSDIR(home / "scripts")
+    SHARED_VARIABLES.set_SSR_SCRIPTSDIR(home / "scripts")
 
     # logフォルダーのパス
     logdir = home / "log"

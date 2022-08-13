@@ -9,7 +9,7 @@ import time
 from enum import Flag, auto
 from logging import getLogger
 from multiprocessing import Lock, Manager, Process, Value
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import plot
 from utility import MyException
@@ -72,21 +72,21 @@ class FileManager:  # ファイルの管理
     _filepath: str
     _filename: str
     _file = None
-    __prewrite = ""
-    delimiter = ","
+    __prewrite: str = ""
+    delimiter: str = ","
 
     @property
-    def filepath(self):
+    def filepath(self) -> str:
         """ファイルのパス"""
         return self._filepath
 
     @property
-    def filename(self):
+    def filename(self) -> str:
         """ファイルの名前"""
         return self._filename
 
     @filename.setter
-    def filename(self, new_filename):
+    def filename(self, new_filename: str):
         """
         ファイル名を設定する際に使えない文字がないが入っていないか判定
         """
@@ -144,7 +144,7 @@ class FileManager:  # ファイルの管理
             self._file.flush()
             self.__prewrite = ""
 
-    def save(self, *args):
+    def save(self, *args: Union[tuple, str]) -> None:
         """データ保存"""
 
         text = ""
@@ -158,7 +158,7 @@ class FileManager:  # ファイルの管理
         text = text[0:-1] + "\n"
         self.write(text)
 
-    def write(self, text: str):
+    def write(self, text: str) -> None:
         """
         ファイルへの書き込み
         ファイルがまだ作成されていなければ別の場所に一次保存
@@ -180,7 +180,7 @@ class FileManager:  # ファイルの管理
                     f"以下の文字列はファイル名に使えません. 入力し直してください \n{' '.join(ngwords)} "
                 )
 
-    def close(self):
+    def close(self) -> None:
         """ファイルを閉じる"""
         self._file.close()
 
@@ -208,7 +208,7 @@ class CommandReceiver:  # コマンドの入力を受け取るクラス
     def __init__(self, measurement_state: MeasurementState) -> None:
         self.__measurement_state = measurement_state
 
-    def initialize(self):
+    def initialize(self) -> None:
         """
         別スレッドで__command_receive_threadを実行
         """
@@ -275,9 +275,9 @@ class PlotAgency:
     def __init__(self) -> None:
         self.set_plot_info()
 
-    def run_plot_window(self):  # グラフと終了コマンド待ち処理を走らせる
+    def run_plot_window(self) -> None:  # グラフと終了コマンド待ち処理を走らせる
         """
-        GPyMではマルチプロセスを用いて測定プロセスとは別のプロセスでグラフの描画を行う.
+        SSRではマルチプロセスを用いて測定プロセスとは別のプロセスでグラフの描画を行う.
 
         Pythonのマルチプロセスでは必要な値はプロセスの作成時に渡しておかなくてはならないので､(例外あり)
         ここではマルチプロセスの起動と必要な引数の受け渡しを行う.
@@ -302,7 +302,7 @@ class PlotAgency:
         renew_interval=1,
         legend=False,
         flowwidth=0,
-    ):  # プロット情報の入力
+    ) -> None:  # プロット情報の入力
         """
         グラフ描画プロセスに渡す値はここで設定する.
         __plot_infoが辞書型なのはアンパックして引数に渡すため
@@ -359,7 +359,7 @@ class PlotAgency:
             "flowwidth": flowwidth,
         }
 
-    def plot(self, x, y, label="default"):
+    def plot(self, x, y, label="default") -> None:
         """
         データをグラフ描画プロセスに渡す.
         labelが変わると色が変わる
@@ -384,11 +384,11 @@ class PlotAgency:
             self.share_list.append(data)  # プロセス間で共有するリストにデータを追加
             self.process_lock.release()  # ロック解除
 
-    def stop_renew_plot_window(self):
+    def stop_renew_plot_window(self) -> None:
         """プロットウィンドウの更新を停止"""
         self.__isfinish.value = 1
 
-    def close(self):
+    def close(self) -> None:
         """プロットウィンドウを閉じる"""
         self.plot_process.terminate()
 

@@ -10,15 +10,15 @@ from variables import SHARED_VARIABLES
 logger = getLogger(__name__)
 
 
-def log(text: str):
+def log(text: str) -> None:
     """ユーザー用に簡易ログ出力を提供"""
     logger.info(text)
 
 
-def setlog():
+def setlog() -> None:
     """ログファイルのセット"""
 
-    with (SHARED_VARIABLES.GPYM_SCRIPTSDIR / "log_config.json").open(
+    with (SHARED_VARIABLES.SSR_SCRIPTSDIR / "log_config.json").open(
         mode="r", encoding="utf-8"
     ) as f:
         conf = json.load(f)
@@ -33,7 +33,7 @@ def setlog():
         config.dictConfig(conf)
 
 
-def set_user_log(path: str):
+def set_user_log(path: str) -> None:
     """ユーザーフォルダ内にもログファイル書き出し"""
     path = Path(path) / "log.txt"
     handler = RotatingFileHandler(

@@ -5,6 +5,7 @@ from importlib.machinery import SourceFileLoader
 from importlib.util import module_from_spec, spec_from_loader
 from logging import getLogger
 from pathlib import Path
+from types import ModuleType
 
 from utility import MyException, ask_open_filename
 from variables import SHARED_VARIABLES, USER_VARIABLES
@@ -16,22 +17,22 @@ class MacroError(MyException):
     """マクロ関連のエラー"""
 
 
-def get_macropath():
+def get_macropath() -> tuple[Path,str,Path]:
     """前回のマクロ名が保存されたファイルのパス"""
     path_premacroname = SHARED_VARIABLES.TEMPDIR / "premacroname"
     path_premacroname.touch()
 
     premacroname = path_premacroname.read_text(encoding="utf-8")
 
-    # gpymは勝手に作った拡張子
+    # .ssrは勝手に作った拡張子
     macropath = ask_open_filename(
-        filetypes=[("pythonファイル", "*.py *.gpym")],
+        filetypes=[("pythonファイル", "*.py *.ssr")],
         title="マクロを選択してください",
         initialdir=str(USER_VARIABLES.MACRODIR),
         initialfile=premacroname,
     )
 
-    macrodir = str(macropath.parent)
+    macrodir = macropath.parent
     macroname = macropath.stem
 
     path_premacroname.write_text(macropath.name, encoding="utf-8")
@@ -40,8 +41,8 @@ def get_macropath():
     return macropath, macroname, macrodir
 
 
-def get_macro(macropath: Path):
-    """パスから各種関数を読み込み"""
+def get_macro(macropath: Path) -> ModuleType:
+    """パスから各種関数を読み込んでユーザーマクロを返す"""
     macroname = macropath.stem
 
     # importlibを使って動的にpythonファイルを読み込む
@@ -107,7 +108,7 @@ def get_macro(macropath: Path):
     return target
 
 
-def get_macro_split(macroPath: Path):
+def get_macro_split(macroPath: Path) -> ModuleType:
     """マクロファイルを分割マクロに変換"""
     macroname = macroPath.stem
     spec = spec_from_loader(macroname, SourceFileLoader(macroname, str(macroPath)))

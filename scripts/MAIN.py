@@ -1,9 +1,15 @@
+"""
+最初に呼ばれる処理
+ユーザーの書いたマクロを取得して
+マクロを動かす関数にわたす
+"""
 import ctypes
 import os
 import sys
 import time
 from logging import getLogger
 from pathlib import Path
+from typing import Callable
 
 import win32api
 import win32con
@@ -19,7 +25,7 @@ from variables import USER_VARIABLES
 logger = getLogger(__name__)
 
 
-def main():
+def main() -> None:
     """
     測定マクロを動かすための準備をするスクリプト
 
@@ -45,11 +51,15 @@ def main():
     # マクロファイルのパスを取得
     macropath, _, macrodir = get_macropath()
 
-    # マクロファイルをマクロに変換
-    macro = get_macro(macropath)
+    # scriptsフォルダーを検索パスに追加
+    # これがなくても動くっぽいけどわかりやすさのために記述
+    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
     # カレントディレクトリを測定マクロ側に変更
-    os.chdir(macrodir)
+    os.chdir(str(macrodir))
+
+    # マクロファイルをマクロに変換
+    macro = get_macro(macropath)
 
     # 強制終了時の処理を追加
     on_forced_termination(lambda: mm.finish())
@@ -58,7 +68,7 @@ def main():
     mm.start_macro(macro)
 
 
-def on_forced_termination(func):
+def on_forced_termination(func: Callable[[None], None]) -> None:
     """
     強制終了時の処理を追加する
 
@@ -77,8 +87,8 @@ def on_forced_termination(func):
         ------------
         ctrlType:
             イベントの種類 (バツボタンクリックやcrtl + C など)
-
         """
+
         if ctrlType == win32con.CTRL_CLOSE_EVENT:
             func()
             print("terminating measurement...")
@@ -91,10 +101,10 @@ def on_forced_termination(func):
 
 
 # 分割関数だけを呼び出し
-def split_only():
+def split_only() -> None:
     print("分割マクロ選択...")
     macroPath = ask_open_filename(
-        filetypes=[("pythonファイル", "*.py *.gpym")], title="分割マクロを選択してください"
+        filetypes=[("pythonファイル", "*.py *.SSR")], title="分割マクロを選択してください"
     )
 
     os.chdir(str(macroPath.parent))
@@ -127,7 +137,7 @@ def split_only():
     input()
 
 
-def setting():
+def setting() -> None:
     """変数のセット"""
     variables.init(Path.cwd())
 
@@ -144,7 +154,7 @@ def setting():
 if __name__ == "__main__":
     setting()
 
-    mode = ""
+    mode: str = ""
     args = sys.argv
     if len(args) > 1:
         mode = args[1].upper()
