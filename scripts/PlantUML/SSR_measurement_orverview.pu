@@ -1,0 +1,92 @@
+@startuml
+
+
+
+|#pink|User Mancro|
+|#lightgray|measurement_manager.py|
+|MAIN.py|
+
+
+:アプリの立ち上げ;
+
+:定義ファイル読み込み;
+:User Macroの読み込み;
+:User Macroのあるフォルダを
+カレントディレクトリに設定;
+
+fork
+
+
+|measurement_manager.py|
+:測定の開始;
+
+|User Mancro|
+:start();
+
+|measurement_manager.py|
+:出力ファイルを作成し、ロックする;
+:プロットウィンドウを立ち上げる;
+
+
+:is_measuring=True;
+
+while (is_measuring) is (True)
+
+
+if (コマンドが入力されたか) is (Yes) then
+    |User Mancro|
+    :on_command(command);
+else (No)
+
+endif
+
+|User Mancro|
+:update();
+|measurement_manager.py|
+
+if (update()の返り値) is (True) then
+
+else (False)
+:is_measuring=False;
+endif
+
+if (プロットウィンドウが閉じられたか) is (Yes) then
+:is_measuring=False;
+else (No)
+endif
+
+
+endwhile (False)
+
+
+fork again
+
+    |MAIN.py|
+    while (コンソールウィンドウが閉じられたか) is (Yes) 
+    |measurement_manager.py|
+    :is_measuring=False;
+    endwhile (No)
+     
+endfork
+
+:プロットウィンドウの更新停止;
+
+|User Mancro|
+:end();
+|measurement_manager.py|
+
+:出力ファイルの書き込みを確定しファイルロック解除;
+
+|User Mancro|
+:split(path);
+|measurement_manager.py|
+
+|User Mancro|
+:after(path);
+|measurement_manager.py|
+
+
+:Enter入力かプロットウィンドウを落とすまで待機;
+:終了;
+
+@enduml

@@ -8,7 +8,7 @@ import sys
 import threading
 import time
 from logging import getLogger
-from typing import Optional
+from typing import Optional, Union
 
 import calibration as calib
 from measurement_manager_support import (
@@ -18,6 +18,7 @@ from measurement_manager_support import (
     MeasurementStep,
     PlotAgency,
 )
+from variables import USER_VARIABLES
 
 logger = getLogger(__name__)
 
@@ -37,7 +38,7 @@ def finish() -> None:
 
 def set_file_name(filename: str) -> None:
     """ファイル名をセット"""
-    _measurement_manager.file_manager.filename = filename
+    _measurement_manager.file_manager.set_filename(filename)
 
 
 def set_calibration(filepath_calib: Optional[str] = None) -> None:
@@ -53,7 +54,7 @@ def set_calibration(filepath_calib: Optional[str] = None) -> None:
         calibration_manager.set_own_calib_file(filepath_calib)
 
 
-def calibration(x):
+def calibration(x: float) -> float:
     """
     この関数は非推奨です。calibration.pyを作ったのでそちらをから呼んでください
     プラチナ温度計の抵抗値xに対応する温度yを線形補間で返す
@@ -61,21 +62,21 @@ def calibration(x):
     return calibration_manager.calibration(x)
 
 
-def set_label(label):
+def set_label(label: str) -> None:
     """ラベルをファイルに書き込み"""
     if _measurement_manager.state.current_step != MeasurementStep.START:
         logger.warning(sys._getframe().f_code.co_name + "はstart関数内で用いてください")
     _measurement_manager.file_manager.write(label)
 
 
-def write_file(text: str):
+def write_file(text: str) -> None:
     """ファイルに書き込み"""
     _measurement_manager.file_manager.write(text)
 
 
 def set_plot_info(
     line=False, xlog=False, ylog=False, renew_interval=1, legend=False, flowwidth=0
-):  # プロット情報の入力
+) -> None:  # プロット情報の入力
     """
     グラフ描画プロセスに渡す値はここで設定する.
     __plot_infoが辞書型なのはアンパックして引数に渡すため
@@ -112,13 +113,13 @@ def set_plot_info(
     )
 
 
-def save_data(*data):
+def save_data(*data: Union[tuple, str]) -> None:
     """データのセーブ"""
     logger.warning("関数save_dataは非推奨です。 saveを使ってください")
     save(*data)
 
 
-def save(*data):  # データ保存
+def save(*data: Union[tuple, str]) -> None:  # データ保存
     """
     引数のデータをファイルに書き込む.
     この関数が呼ばれるごとに書き込みの反映( __savefile.flush)をおこなっているので途中で測定が落ちてもそれまでのデータは残るようになっている.
@@ -143,7 +144,7 @@ def save(*data):  # データ保存
 plot_data_flag = False
 
 
-def plot_data(x, y, label="default"):  # データをグラフにプロット
+def plot_data(x: float, y: float, label: str = "default") -> None:  # データをグラフにプロット
     global plot_data_flag
     if not plot_data_flag:
         logger.warning("plot_dataは非推奨です。plotを使ってください")
@@ -151,7 +152,7 @@ def plot_data(x, y, label="default"):  # データをグラフにプロット
     plot(x, y, label)
 
 
-def plot(x, y, label="default"):
+def plot(x: float, y: float, label: str = "default") -> None:
     """
     データをグラフ描画プロセスに渡す.
     labelが変わると色が変わる
@@ -197,11 +198,11 @@ class MeasurementManager:
 
     def __init__(self, macro) -> None:
         self.macro = macro
-        self.file_manager = FileManager()
+        self.file_manager = FileManager(USER_VARIABLES.DATADIR)
         self.plot_agency = PlotAgency()
         self.command_receiver = CommandReceiver(self.state)
 
-    def measure_start(self):
+    def measure_start(self) -> None:
         """
         測定のメインとなる関数. 測定マクロに書かれた各関数はMAIN.pyによってここに渡されて
         ここでそれぞれの関数を適切なタイミングで呼んでいる

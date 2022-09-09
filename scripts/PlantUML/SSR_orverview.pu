@@ -1,0 +1,64 @@
+@startuml
+
+skinparam card {
+    BackgroundColor #C1FA9D
+}
+
+file usermacro as "UserMacro" #0EE8E6
+
+agent ssr as "SSR.exe"
+agent startup as "startup.bat"
+file "MAIN.py"{
+    rectangle main as "main()"
+}
+file "measurement_manager.py"{
+    card MeasurementManager  [
+        MeasurementManager
+    ]
+}
+file "measurement_manager_support.py"{
+    card FileManager[
+        FileManager
+        ====
+        ファイル書き込み・保存
+    ]
+    card PlotAgency[
+        PlotAgency
+    ]
+    card CommandReceiver[
+        CommandReceiver
+        ====
+        コマンド入力を取得
+    ]
+}
+
+rectangle "anotherProcess" #DFEBF0{
+    file "plot.py"{
+        card PlotWindow[
+            PlotWindow
+            ====
+            測定データをグラフにプロット
+        ]
+}
+   
+}
+
+ssr -> startup: 実行
+startup -> main: 実行
+
+
+main -> MeasurementManager: ユーザーマクロをセットして実行
+MeasurementManager-->FileManager
+MeasurementManager-->PlotAgency
+MeasurementManager<--CommandReceiver
+MeasurementManager->usermacro:実行&コマンド情報の送信
+
+usermacro-----> MeasurementManager:測定データ送信&終了を通知
+
+
+PlotAgency -->PlotWindow: 別プロセスへデータ送信
+
+
+MeasurementManager->終了 :終了フラグがTrueなら終了
+
+@enduml

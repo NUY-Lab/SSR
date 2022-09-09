@@ -1,0 +1,77 @@
+@startuml
+
+card UserMacro #lightgreen [
+    UserMacro
+    ====
+    start()
+    update()
+    on_command(command)
+    end()
+    split(path)
+    after(path)
+]
+
+file GPIB as "GPIB.py" {
+    card get_instrument as "get_instrument(address)"
+}
+   
+
+file calibration as "calibration.py" {
+    card TMRCalibrationManager
+}
+    
+
+
+file split as "split.py" {
+
+}
+
+file _log as "log.py"{
+    card log as "log(text)"
+}
+
+file measurement_manager as "measurement_manager.py"{
+    card finish as "finish()"
+    card set_file_name as "set_file_name(filename)"
+    card write_file as "write_file(text)"
+    card set_plot_info as "set_plot_info(...)"
+    card save as "save(data)"
+    card plot as "plot(x,y,label)"
+    card no_plot as "no_plot()"
+}
+
+file variables as "variables.py" {
+    card USER_VARIABLES[
+        USER_VARIABLES
+        ====
+        TEMPDIR
+        MACRODIR
+        DATADIR
+    ]
+
+    card SHARED_VARIABLES[
+        SHARED_VARIABLES
+        ====
+        SETTINGDIR
+        TEMPDIR
+        ...
+    ]
+}
+
+finish <--- UserMacro: 測定の終了
+set_file_name <--- UserMacro: ファイル名設定
+write_file <--- UserMacro : ファイル書き込み
+save <--- UserMacro : データをファイルに書き込み
+set_plot_info <--- UserMacro : プロット情報設定
+plot <--- UserMacro : データをプロット
+no_plot <--- UserMacro : プロットしない
+log <- UserMacro : ログの出力
+
+UserMacro -> get_instrument : GPIB機器の取得
+UserMacro --> TMRCalibrationManager: キャリブレーション
+UserMacro --> split : ファイルの分割
+
+UserMacro ---> SHARED_VARIABLES : 共有フォルダのパスを取得
+UserMacro ---> USER_VARIABLES : ユーザーフォルダのパスを取得
+
+@enduml

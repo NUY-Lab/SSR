@@ -9,6 +9,7 @@ import time
 from enum import Flag, auto
 from logging import getLogger
 from multiprocessing import Lock, Manager, Process, Value
+from pathlib import Path
 from typing import List, Optional, Union
 
 import plot
@@ -74,6 +75,14 @@ class FileManager:  # ファイルの管理
     _file = None
     __prewrite: str = ""
     delimiter: str = ","
+    _datadir: Path
+
+    def __init__(self, datadir: Path) -> None:
+        self.set_filename("")
+        if not datadir.is_dir():  # フォルダの存在確認
+            raise self.FileError(str(datadir) + "のフォルダにアクセスしようとしましたが､存在しませんでした")
+        else:
+            self._datadir = datadir
 
     @property
     def filepath(self) -> str:
@@ -85,16 +94,24 @@ class FileManager:  # ファイルの管理
         """ファイルの名前"""
         return self._filename
 
-    @filename.setter
-    def filename(self, new_filename: str):
+    def set_filename(self, new_filename: str, add_date: bool = True):
         """
         ファイル名を設定する際に使えない文字がないが入っていないか判定
+
+        Attributes
+
+        new_filename :str
+            ファイル名
+
+        add_date : bool
+            ファイル名の前に日付をつけるかどうか
+
         """
         self.check_has_file_ng_word(new_filename)
-        self._filename = self.get_date_text() + "_" + new_filename + ".txt"
-
-    def __init__(self) -> None:
-        self.filename = ""
+        if add_date:
+            self._filename = self.get_date_text() + "_" + new_filename + ".txt"
+        else:
+            self._filename = new_filename + ".txt"
 
     def get_date_text(self) -> str:
         """
@@ -118,22 +135,24 @@ class FileManager:  # ファイルの管理
         )
         return datelabel
 
-    def create_file(self, do_make_folder: bool) -> None:
+    def create_file(self, do_make_folder: bool = False) -> None:
         """
-        フォルダが無ければエラーを出し､あれば新規でファイルを作り､__savefileに代入
-        """
+        新規でファイルを作り､__savefileに代入
 
-        if not USER_VARIABLES.DATADIR.is_dir():  # フォルダの存在確認
-            raise self.FileError(
-                str(USER_VARIABLES.DATADIR) + "のフォルダにアクセスしようとしましたが､存在しませんでした"
-            )
+        Attributes
+        ---------------
+
+        do_make_folder:bool
+            フォルダを作るかどうか
+
+        """
 
         if do_make_folder:
-            nowdatadir = USER_VARIABLES.DATADIR / self._filename.replace(".txt", "")
+            nowdatadir = self._datadir / self._filename.replace(".txt", "")
             nowdatadir.mkdir()
             self._filepath = nowdatadir / self._filename
         else:
-            self._filepath = USER_VARIABLES.DATADIR / self._filename
+            self._filepath = self._datadir / self._filename
 
         self._file = self._filepath.open(mode="x", encoding="utf-8")  # ファイル作成
 
@@ -267,7 +286,7 @@ class PlotAgency:
     class PlotAgentError(MyException):
         """プロット仲介クラス関連の例外クラス"""
 
-    share_list: List[tuple]
+    share_list: List[tuple[float, float, str]]
     __isfinish: Value
     process_lock: Lock
     plot_process: Process
