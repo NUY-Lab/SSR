@@ -1,31 +1,31 @@
-import importlib
-import sys
-import os
-import tkinter.filedialog as tkfd
-from tkinter import Tk
-import inputModule as inp
-import measurementManager as mm
-import utilityModule as util
-from importlib.util import spec_from_loader, module_from_spec
-from importlib.machinery import SourceFileLoader 
+"""
+最初に呼ばれる処理
+ユーザーの書いたマクロを取得して
+マクロを動かす関数にわたす
+"""
 import ctypes
-from utilityModule import GPyMException,printlog,inputlog
+import os
+import sys
+import time
+from logging import getLogger
+from pathlib import Path
+from typing import Callable
 
-#簡易編集モードをOFFにするためのおまじない
-kernel32 = ctypes.windll.kernel32
-mode=0xFDB7 #簡易編集モードとENABLE_WINDOW_INPUT と ENABLE_VIRTUAL_TERMINAL_INPUT をOFFに
-kernel32.SetConsoleMode(kernel32.GetStdHandle(-10), mode)
+import win32api
+import win32con
+
+import measurement_manager as mm
+import variables
+from define import read_deffile
+from log import set_user_log, setlog
+from macro import get_macro, get_macro_split, get_macropath
+from utility import MyException, ask_open_filename
+from variables import USER_VARIABLES
+
+logger = getLogger(__name__)
 
 
-TEMPDIR=None#TEMPフォルダーのパス
-SHERED_SETTINGS_DIR=None #共有設定フォルダのパス
-logger=util.mklogger(__name__)
-
-
-
-
-
-def main():
+def main() -> None:
     """
     測定マクロを動かすための準備をするスクリプト
 
@@ -42,213 +42,145 @@ def main():
     measurementManager._measure_startを実行
 
     """
-    #sys.path.append(os.path.dirname(sys.executable))
+    # 定義ファイル読み取り
+    read_deffile()
 
-    path_deffilepath=TEMPDIR+"\\deffilepath"#前回の定義ファルのパスが保存されているファイル
-    if not os.path.isfile(path_deffilepath):#deffilepathがなければ作る
-        with open(path_deffilepath,mode="w",encoding="utf-8") as f:
-            pass
-    
-    with open(path_deffilepath,mode="r",encoding="utf-8") as f:#前回の定義ファイルのフォルダを開いて定義ファイル選択画面へ
-        predefpath=f.read()
-        predefdir=None
-        predeffilename=None
-        if os.path.isfile(predefpath):
-            predefdir,predeffilename=os.path.split(predefpath)
-        print("定義ファイル選択...")
-        defpath,datadir,default_macrodir,tempdir=inp.read_defdir(dirpath=predefdir,filename=predeffilename)#前回の定義ファイルのパスがあったところからファイル選択ダイアログを開く
+    # ユーザー側にlogファイル表示
+    set_user_log(USER_VARIABLES.TEMPDIR)
 
-    with open(path_deffilepath,mode="w",encoding="utf-8") as f:#今回の定義ファイルのパスを保存
-        f.write(defpath)
-    
-    
-        
-        
-    path_premacroname=TEMPDIR+"\\premacroname"
-    if not os.path.isfile(path_premacroname):
-        with open(path_premacroname,mode="w",encoding="utf-8") as f:
-            pass
+    # マクロファイルのパスを取得
+    macropath, _, macrodir = get_macropath()
 
-    with open(path_premacroname,mode="r",encoding="utf-8") as f:
-        premacroname=f.read()
+    # scriptsフォルダーを検索パスに追加
+    # これがなくても動くっぽいけどわかりやすさのために記述
+    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+    # カレントディレクトリを測定マクロ側に変更
+    os.chdir(str(macrodir))
+
+    # マクロファイルをマクロに変換
+    macro = get_macro(macropath)
+
+    # 強制終了時の処理を追加
+    on_forced_termination(lambda: mm.finish())
+
+    # 測定開始
+    mm.start_macro(macro)
 
 
-    tk = Tk()
-    print("マクロ選択...")
-    typ = [('pythonファイル','*.py *.gpym')] #gpymは勝手に作った拡張子
-    macropath=tkfd.askopenfilename(filetypes = typ,title="マクロを選択してください",initialdir=default_macrodir,initialfile=premacroname) #マクロ選択
-    tk.destroy() #これとtk=Tk()がないと謎のウィンドウが残って邪魔になる
+def on_forced_termination(func: Callable[[None], None]) -> None:
+    """
+    強制終了時の処理を追加する
+
+    Parameter
+    ----------
+    func : func
+        強制終了時に実行する関数
+    """
+
+    def consoleCtrHandler(ctrlType):
+        """
+        コマンドプロンプト上でイベントが発生したときに呼ばれる関数
+        PC側で実行される(こちらから実行はしない)
+
+        Parameter
+        ------------
+        ctrlType:
+            イベントの種類 (バツボタンクリックやcrtl + C など)
+        """
+
+        if ctrlType == win32con.CTRL_CLOSE_EVENT:
+            func()
+            print("terminating measurement...")
+            # マクロが終了するまで最大100秒待機
+            for i in range(100):
+                time.sleep(1)
+
+    # イベントが起きたときにconsoleCtrHandlerを実行するようにPCに命令
+    win32api.SetConsoleCtrlHandler(consoleCtrHandler, True)
 
 
-    macrodir,macroname=os.path.split(macropath)#マクロのパスをフォルダとファイル名に分割
-
-    with open(path_premacroname,mode="w",encoding="utf-8") as f:
-        f.write(macroname)
-
-
-    printlog("macro : "+macroname)
-    macroname=os.path.splitext(macroname)[0]#ファイル名から拡張子をとる
-
-    #importlibを使って動的にpythonファイルを読み込む
-    spec = spec_from_loader(macroname, SourceFileLoader(macroname,macropath))
-    target = module_from_spec(spec)
-    spec.loader.exec_module(target)
-
-    #測定マクロに必要な関数と引数が含まれているか確認
-    UNDIFINE_ERROR=False
-    UNDIFINE_WARNING=""
-    if not hasattr(target, 'start'):
-        target.start=None
-        UNDIFINE_WARNING+="start, "
-    elif target.start.__code__.co_argcount!=0:
-        logger.error(target.__name__+".startには引数を設定してはいけません")
-        UNDIFINE_ERROR=True
-
-    if not hasattr(target, 'update'):
-        logger.error(target.__name__+".pyの中でupdateを定義する必要があります")
-        UNDIFINE_ERROR=True
-    elif target.update.__code__.co_argcount!=0:
-        logger.error(target.__name__+".updateには引数を設定してはいけません")
-        UNDIFINE_ERROR=True
-
-    if not hasattr(target, 'end'):
-        target.end=None
-        UNDIFINE_WARNING+="end, "
-    elif target.end.__code__.co_argcount!=0:
-        logger.error(target.__name__+".endには引数を設定してはいけません")
-        UNDIFINE_ERROR=True
-
-    if not hasattr(target, 'on_command'):
-        target.on_command=None
-        UNDIFINE_WARNING+="on_command, "
-    elif target.on_command.__code__.co_argcount!=1:
-        logger.error(target.__name__+".on_commandには引数を設定してはいけません")
-        UNDIFINE_ERROR=True
-
-    if not hasattr(target, 'bunkatsu'):
-        target.bunkatsu=None
-        UNDIFINE_WARNING+="bunkatsu, "
-    elif target.bunkatsu.__code__.co_argcount!=1:
-        logger.error(target.__name__+".bunkatsuには引数を設定してはいけません")
-        UNDIFINE_ERROR=True
-               
-    if UNDIFINE_WARNING !="":
-        UNDIFINE_WARNING=UNDIFINE_WARNING[:-2]
-        printlog("UNDEFINED FUNCTION : "+UNDIFINE_WARNING)
-
-    
-    if issubclass(target.Data,tuple):
-        data_label=""
-        count=1
-        for s in target.Data._fields:
-            data_label+="["+str(count)+"]"+s+", "
-            count+=1
-        data_label=data_label[:-2]
-    else:
-        logger.error("Dataをnamedtupleで定義してください")
-        UNDIFINE_ERROR=True
-
-    if UNDIFINE_ERROR:
-        input("エラーのため終了します...")
-        sys.exit()
-
-
-    mm._set_variables(datadir=datadir,tempdir=tempdir,file_label=data_label,shared_settings_dir=SHERED_SETTINGS_DIR)
-
-    os.chdir(macrodir)#カレントディレクトリを測定マクロ側に変更
-
-    mm._measure_start(start=target.start,update=target.update,end=target.end,on_command=target.on_command,bunkatsu=target.bunkatsu)#測定開始
-    
-
-
-
-def bunkatsu_only():
-
-    tk = Tk()
+# 分割関数だけを呼び出し
+def split_only() -> None:
     print("分割マクロ選択...")
-    typ = [('pythonファイル','*.py *.gpym')] 
-    macroPath=tkfd.askopenfilename(filetypes = typ,title="分割マクロを選択してください") #ファイルダイアログでファイルを取得 
+    macroPath = ask_open_filename(
+        filetypes=[("pythonファイル", "*.py *.SSR")], title="分割マクロを選択してください"
+    )
 
-    macrodir,macroname=os.path.split(macroPath)
-    macroname=os.path.splitext(macroname)[0]
-    os.chdir(macrodir)
-    print("macro : "+macroname)
+    os.chdir(str(macroPath.parent))
+    print(f"macro: {macroPath.stem}")
 
-
-    def hoge(address):
+    def noop(address):
         return None
-    import GPIBModule
-    GPIBModule.get_instrument=hoge#GPIBモジュールの関数を書き換えてGPIBがつながって無くてもエラーが出ないようにする
-    print("INFO : you can't use GPIB.get_instrument in GPyM_bunkatsu")
-    print("INFO : you can't use most of measurementManager's methods in GPyM_bunkatsu")
 
+    try:
+        import GPIB
 
-    #bunkatsufunc=get_bunkatsu_func(macroPath) #マクロからbunkatsu関数部分だけを抜き出し
-     
-    #importlibを使って動的にpythonファイルを読み込む
-    spec = spec_from_loader(macroname, SourceFileLoader(macroname,macroPath))
-    target = module_from_spec(spec)
-    spec.loader.exec_module(target)
-       
+        # GPIBモジュールの関数を書き換えてGPIBがつながって無くてもエラーが出ないようにする
+        GPIB.get_instrument = noop
+        logger.info("you can't use GPIB.get_instrument in GPyM_bunkatsu")
+        logger.info(
+            "you can't use most of measurementManager's methods in GPyM_bunkatsu"
+        )
+    except Exception:
+        pass
 
-    if not hasattr(target, 'bunkatsu'):
-        raise util.create_error(target.__name__+".pyにはbunkatsu関数を定義する必要があります",logger)
-    elif target.bunkatsu.__code__.co_argcount!=1:
-        raise util.create_error(target.__name__+".bunkatsuには1つの引数が必要です",logger)
-
+    target = get_macro_split(macroPath)
 
     print("分割ファイル選択...")
-    typ = [('データファイル','*.txt *dat')] 
-    filePath=tkfd.askopenfilename(filetypes = typ,title="分割するファイルを選択してください") #ファイルダイアログでファイルを取得
-    tk.destroy() #これとtk=Tk()がないと謎のウィンドウが残って邪魔になる
+    filePath = ask_open_filename(
+        filetypes=[("データファイル", "*.txt *dat")], title="分割するファイルを選択してください"
+    )
 
-    
-    mm._set_variables(datadir=None,tempdir=None,file_label=None,shared_settings_dir=SHERED_SETTINGS_DIR)
-    target.bunkatsu(filePath)
+    target.split(filePath)
+    # 画面が閉じないようにinputをいれておく
     input()
-    
 
 
+def setting() -> None:
+    """変数のセット"""
+    variables.init(Path.cwd())
+
+    # 簡易編集モードをOFFにするためのおまじない
+    # (簡易編集モードがONだと、画面をクリックしたときに処理が停止してしまう)
+    kernel32 = ctypes.windll.kernel32
+    # 簡易編集モードとENABLE_WINDOW_INPUT と ENABLE_VIRTUAL_TERMINAL_INPUT をOFFに
+    mode = 0xFDB7  # 16進数
+    kernel32.SetConsoleMode(kernel32.GetStdHandle(-10), mode)
+
+    setlog()
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
+    setting()
 
-    filedir=os.getcwd()
-    if not os.path.isdir("TEMP"):#TEMPDIRが無ければつくる
-        os.mkdir("TEMP")
-    TEMPDIR=filedir+"\\TEMP"
-
-    if not os.path.isdir("SHERED_SETTINGS"):#SHERED_SETTINGSが無ければつくる
-        os.mkdir("SHERED_SETTINGS")
-    SHERED_SETTINGS_DIR=filedir+"\\SHERED_SETTINGS"
-
-    util.set_LOG(TEMPDIR+"\\LOG.txt")#ログをセット
-    
-
+    mode: str = ""
     args = sys.argv
-    if len(args)==1:
-        mode=input("mode is > ")
-    else:
-        mode=args[1]
+    if len(args) > 1:
+        mode = args[1].upper()
+
+    # 引数によって測定モードか分割モードかを判定
+    while True:
+        if mode in ["MEAS", "SPLIT"]:
+            break
+        mode = input("mode is > ").upper()
+
+    # 処理を開始
     try:
-        
-        if mode=="MEAS":
+        if mode == "MEAS":
             main()
-        elif mode=="BUNKATSU":
-            bunkatsu_only()
         else:
-            input("コマンドが違います")
-            raise Exception()
-
+            split_only()
+    # エラーは全てここでキャッチ
+    except MyException as e:
+        print("*****************Error*****************")
+        print(e.message)  # MyExceptionならメッセージだけを表示
+        input("*****************Error*****************")
+        print("↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓詳細↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓")
+        logger.exception("")
+        input("↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑詳細↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑")
     except Exception as e:
-        util.output_ErrorLog(TEMPDIR+"\\ERRORLOG.txt",e)
-        import traceback
-
-        if type(e) is not GPyMException:#自分で設定したエラー以外はコンソールウィンドウにエラーログを表示
-            traceback.print_exc()#エラー表示
-            input("__Error__")#コンソールウィンドウが落ちないように入力待ちを入れる
-    else:
-        util.cut_LOG()
-    
-
-    
+        print("*****************Error*****************")
+        logger.exception("")
+        # コンソールウィンドウが落ちないように入力待ちを入れる
+        input("*****************Error*****************")
