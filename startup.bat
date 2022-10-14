@@ -10,4 +10,4 @@ set /p __=
 exit /b
 )
 echo on
-python scripts\MAIN.py MEAS
+py scripts\MAIN.py MEAS
