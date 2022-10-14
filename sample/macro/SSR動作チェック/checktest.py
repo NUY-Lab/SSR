@@ -4,12 +4,17 @@ from functools import cache
 from GPIB import GPIBError, get_instrument
 from measurement_manager import (
     finish,
+    no_plot,
     plot,
     save,
     set_file_name,
     set_plot_info,
     write_file,
 )
+
+
+def start():
+    no_plot()
 
 
 def update():
@@ -28,10 +33,10 @@ def update():
             print("エラーが発生しました")
             print(f"エラーメッセージ : {e.message}")
 
-        name = inst.query("")
+        name = inst.query("*IDN?")
         print(f"接続している機器の名前は {name} です")
 
-        print("GPIBのチェックを続けるならYを、そうでなければ別の文字を入力してください")
+        print("GPIBのチェックを続けるならYを、そうでなければ別の文字を入力してください\n")
         if input() != "Y":
             break
 
@@ -42,6 +47,8 @@ def update():
     text = input("ファイルに書きたい文字を入力してください")
 
     write_file(text)
+
+    return False
 
 
 def after(path):
