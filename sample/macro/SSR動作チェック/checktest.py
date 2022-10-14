@@ -31,7 +31,8 @@ def update():
             inst = get_instrument(int(num))
         except GPIBError as e:
             print("エラーが発生しました")
-            print(f"エラーメッセージ : {e.message}")
+            input(f"エラーメッセージ : {e.message}")
+            raise Exception(e.message)
 
         name = inst.query("*IDN?")
         print(f"接続している機器の名前は {name} です")
