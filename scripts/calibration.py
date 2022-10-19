@@ -11,6 +11,7 @@ from variables import SHARED_VARIABLES
 
 logger = getLogger(__name__)
 
+
 class CalibrationError(MyException):
     """キャリブレーション関連のエラー"""
 
@@ -46,7 +47,7 @@ class TMRCalibrationManager:
         files: list[str] = glob.glob(str(path) + "/*")
 
         files = list(
-            filter(lambda f: os.path.split(f)[1][0] != "_")
+            filter(lambda f: os.path.split(f)[1][0] != "_", files)
         )  # 名前の先頭にアンダーバーがあるものは排除
 
         if len(files) == 0:
