@@ -62,10 +62,13 @@ endwhile (False)
 fork again
 
     |MAIN.py|
-    while (コンソールウィンドウが閉じられたか) is (Yes) 
+    while (コンソールウィンドウが閉じられたか) is (No) 
+    
+    endwhile (Yes)
     |measurement_manager.py|
     :is_measuring=False;
-    endwhile (No)
+    -[hidden]->
+    
      
 endfork
 

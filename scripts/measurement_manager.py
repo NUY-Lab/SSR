@@ -196,11 +196,20 @@ class MeasurementManager:
     state = MeasurementState()
     is_measuring = False
 
+    @classmethod
+    def set_measurement_state(cls, state: MeasurementState):
+        cls.state = state
+
+    @classmethod
+    def get_measurement_state(cls) -> MeasurementState:
+        return cls.state
+
     def __init__(self, macro) -> None:
         self.macro = macro
         self.file_manager = FileManager(USER_VARIABLES.DATADIR)
         self.plot_agency = PlotAgency()
         self.command_receiver = CommandReceiver(self.state)
+        self.set_measurement_state(self.state)
 
     def measure_start(self) -> None:
         """

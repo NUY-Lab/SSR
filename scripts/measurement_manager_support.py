@@ -48,6 +48,12 @@ class MeasurementState:
 
     current_step: MeasurementStep = MeasurementStep.READY
 
+    def has_finished_measurement(self) -> bool:
+        return bool(self.current_step & MeasurementStep.AFTER_MEASUREMENT_ALL_STEPS)
+
+    def is_measuring(self) -> bool:
+        return bool(self.current_step & MeasurementStep.MEASURING)
+
 
 class FileManager:  # ファイルの管理
     """
@@ -237,8 +243,8 @@ class CommandReceiver:  # コマンドの入力を受け取るクラス
 
     def __command_receive_thread(self) -> None:  # 終了コマンドの入力待ち, これは別スレッドで動かす
         while True:
-            if msvcrt.kbhit() and (
-                self.__measurement_state.current_step & MeasurementStep.MEASURING
+            if (
+                msvcrt.kbhit() and self.__measurement_state.is_measuring()
             ):  # 入力が入って初めてinputが動くように(inputが動くとその間ループを抜けられないので)
                 command = input()
                 if command != "":
@@ -246,10 +252,7 @@ class CommandReceiver:  # コマンドの入力を受け取るクラス
                     logger.info("command:%s", self.__command)
                     while self.__command is not None:
                         time.sleep(0.1)
-            elif bool(
-                self.__measurement_state.current_step
-                & MeasurementStep.AFTER_MEASUREMENT_ALL_STEPS
-            ):
+            elif self.__measurement_state.has_finished_measurement():
                 break
             time.sleep(0.1)
 
