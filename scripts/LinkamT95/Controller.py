@@ -126,6 +126,9 @@ class LinkamT95AutoController:
     """
 
     class Timer:
+        """
+        温度に到達したあとに設定時間分だけ待つタイマー
+        """
         __time__start = None
         __hold__time = None
 
@@ -134,16 +137,23 @@ class LinkamT95AutoController:
             self.__hold__time = hold_time_min
 
         def is_completed(self) -> bool:
-            return self.__time__start - time.time() >= self.__hold__time * 60
+            return time.time() - self.__time__start >= self.__hold__time * 60
 
     class SequenceList:
+        """
+        設定シーケンスを保持するリスト
+        """
         __index = 0
         __sequence_list: List[Sequence] = []
 
         def add_sequence(self, sequence: Sequence):
             self.__sequence_list.append(sequence)
+    
 
         def get_next_sequence(self):
+            """
+            次のシーケンスを返す。終了時はNoneを返す
+            """
             if self.__index < len(self.__sequence_list):
                 seq = self.__sequence_list[self.__index]
                 self.__index += 1
@@ -167,6 +177,8 @@ class LinkamT95AutoController:
         self.__controller.connect(COMPORT)
 
     def add_sequence(self, T: int, hold: int, rate: int, lnp: int):
+        """
+        """
         self.__sequence_list.add_sequence(
             Sequence(
                 temperature=T, hold_time_min=hold, temp_per_min=rate, lnp_speed=lnp
@@ -190,6 +202,7 @@ class LinkamT95AutoController:
         while True:
             time.sleep(3)
             if autoController.__update(measurement_state):
+                autoController.stop()
                 break
 
     def __update(self, measurement_state: MeasurementState):
@@ -224,7 +237,12 @@ class LinkamT95AutoController:
                 self.__timer.start(self.__now_sequence.hold_time_min)
 
         if measurement_state.has_finished_measurement():
-            self.__controller.stop()
             logger.info("temperature sequence stopped ...")
             return False
         return True
+
+    def cancel_sequence(self):
+        self.__controller.stop()
+        self.__sequence_list= self.SequenceList()
+        self.__timer=self.Timer()
+        
