@@ -5,11 +5,10 @@
 """
 from __future__ import annotations
 
-import ast
-import inspect
 import re
+import textwrap
 from dataclasses import dataclass, is_dataclass
-from typing import Any, Callable
+from typing import Any
 
 from utility import MyException
 
@@ -32,7 +31,8 @@ class BaseData():
         """
         あとから要素を追加するのを阻止
         """
-        if hasattr(self,__name):
+        
+        if __name in self.__class__.__dict__.get("__annotations__").keys():
             super().__setattr__(__name,__value)
         else:
             raise self.BaseDataError(f"{__name}は{self.__class__.__name__}に最初に定義された変数に含まれていません。\n 使用する変数は宣言時に定義しておいてください")
@@ -44,15 +44,50 @@ class BaseData():
         このクラスを継承したクラスが作られたときに呼ばれる
         """
         attrs=cls.__dict__
-        annotations=attrs.get("__annotations__") #フィールド名？を取得
-        if annotations is not None:
-            for field_name in annotations.keys():
-                unit_str=attrs.get(field_name) # クラス変数に入っているはずの単位情報を取得
-                if type(unit_str) is not str: #単位情報がない or 文字列でないときはエラー         
-                    raise cls.BaseDataError(f'{cls.__name__}クラスの定義方法にエラーが発生しています. \n ' f'{cls.__base__.__name__}' 'を継承したクラスの変数は、{変数名}:{データ型(わからなければfloat)} ="[{単位}]"の形にしてください \n 例) voltage:float = "[mV]"  \n     loopnumber:int = "" (単位がないときは "" をつける)')
+        annotations=attrs.get("__annotations__") #型ヒントの付いた変数を取得
+        #変数名を取得
+        variables=dict(filter(lambda item: not re.fullmatch("__.*__",item[0]), cls.__dict__.items()))
+
+        #全ての変数にアノテーションがついてなければエラー
+        for v in variables.keys():
+            if (annotations is None) or (v not in annotations.keys()):
+                raise cls.BaseDataError(f'{cls.__name__}クラスの変数{v}の定義方法にエラーが発生しています. \n ' f'{cls.__base__.__name__}' 'を継承したクラスの変数は、{変数名}:"[{単位}]"の形にしてください \n 例) voltage:"[mV]"  \n     loopnumber:"" (単位がないときは "" をつける)')
+        #アノテーションが文字列でなければエラー
+        for var, anot in annotations.items():
+            if type(anot) is not str:
+                raise cls.BaseDataError(f'{cls.__name__}クラスの変数{var}の定義方法にエラーが発生しています. \n ' f'{cls.__base__.__name__}' 'を継承したクラスの変数は、{変数名}:"[{単位}]"の形にしてください \n 例) voltage:"[mV]"  \n     loopnumber:"" (単位がないときは "" をつける)')
+
+
+        # コンストラクタが定義されてなければ自動的に定義
+        if "__init__" not in cls.__dict__.keys():
+            parameter_text=""
+            assign_text=""
+            default=False
+            for parameter_name in annotations.keys():
+                if (parameter_default:=cls.__dict__.get(parameter_name)) is not None:
+                    parameter_text+=f"{parameter_name}={parameter_default},"
+                    default=True
+                else:
+                    parameter_text+=f"{parameter_name},"
+                    if default:
+                        raise cls.BaseDataError(f"{cls.__name__}クラスの変数定義の方法にエラーが存在します。\nデフォルト値を設定した変数のあとにデフォルト値のない変数を宣言することはできません。")
+                assign_text+=f"self.{parameter_name}={parameter_name};"
+            
+            parameter_text=parameter_text[:-1]
+            
+            init_text=f"""
+            def __init__(self,{parameter_text}):
+                {assign_text}
                 
-        dataclass(cls) #強制的にdataclassにする
-        cls.__init__.__defaults__=() #クラス変数がコンストラクタのデフォルトの値になっているので削除しておく
+
+            cls.__init__ = __init__
+
+            """
+            init_text=textwrap.dedent(init_text)
+            exec(init_text) #文字列で書いたコードを実行
+
+               
+        
         return super().__init_subclass__(**kwargs) #これはおまじない
 
 
@@ -61,12 +96,12 @@ class BaseData():
         """
         ラベルデータの作成
         """
-        # cls.__dict__の中からクラス変数の情報だけを抽出
-        class_variables=dict(filter(lambda item: not re.fullmatch("__.*__",item[0]), cls.__dict__.items()))
+        
+        annotations=cls.__dict__.get("__annotations__")
         text=""
         index=0
-        for name,unit in class_variables.items():
-            text+=f"{index}:{name}{unit},  "
+        for name,unit in annotations.items():
+            text+=f"{index}:{name} {unit},  "
             index+=1
         text=text[:-3]
         return text
@@ -79,83 +114,3 @@ class BaseData():
         yield from  list(self.__dict__.values()) #変数をリストにして返す
 
     
-
-
-class BaseGlobalMeta(type):
-    def __setattr__(self, __name: str, __value: Any) -> None:
-        """
-        あとから要素を追加するのを阻止
-        """
-        if hasattr(self,__name):
-            super().__setattr__(__name,__value)
-        else:
-            raise UserUtilityError(f"{__name}は{self.__name__}に最初に定義された変数に含まれていません。\n 使用する変数は宣言時に定義しておいてください")
-
-# class BaseGlobal(metaclass=BaseGlobalMeta):
-#     """
-#     グローバル変数をクラス変数として管理することでglobal宣言のし忘れによるエラーをなくしたい
-#     """
-    
-#     def __new__(cls,*p) :
-#         """インスタンスの作成禁止"""
-#         raise UserUtilityError(f"{cls.__name__}はインスタンス化することはできません。\n {cls.__name__}.'変数名'='値'で代入してください")
-
-
-# class Parameter(BaseGlobal):
-#     p1=100
-#     p2="aaa"
-
-# print(Parameter.p1)
-# Parameter.p2="nnn"
-# print(Parameter.p2)
-
-# p=Parameter()
-
-# class LocalValueNodeVisiter(ast.NodeVisitor):
-#     """
-#     グローバル変数と同名のローカル変数の使用を禁止するためのクラス
-#     LocalValueNodeVisiter().check_localvals(f)で使用 (fは関数)
-#     """
-
-#     localvals=[]
-#     globalvals=[]
-
-#     def _check_addlocal(self,id):
-#         return (id not in self.globalvals) and (id not in self.localvals)
-
-#     def visit_Assign(self, node: ast.Assign):
-#         """
-#         この名前の関数を定義すると、
-#         NodeVisitor.visit()の実行時に
-#         Assign属性のノードを見つけたときにこの関数を呼んでくれるらしい
-#         """
-#         targets=node.targets
-#         for target in targets:
-#             if type(target) is ast.Name:
-#                 if self._check_addlocal(id:=target.id):
-#                     self.localvals.append(id)
-#             if type(target) is ast.Tuple:
-#                 elts=target.elts
-#                 if self._check_addlocal(elts[0].id):
-#                     self.localvals.append(elts[0].id)
-#                 if self._check_addlocal(elts[1].id):
-#                     self.localvals.append(elts[1].id)
-            
-#         self.generic_visit(node)
-
-#     def visit_Global(self, node: ast.Global):
-#         self.globalvals += node.names
-#         self.generic_visit(node)
-
-#     def visit_NamedExpr(self, node: ast.NamedExpr):
-#         if type(node.target) is ast.Name:
-#             if self._check_addlocal(id:=node.target.id):
-#                 self.localvals.append(id)
-
-#         self.generic_visit(node)
-    
-#     def check_localvals(self,f:Callable):
-#         self.visit(ast.parse(inspect.getsource(f)))
-#         for localval in self.localvals:
-#             if localval in globals():
-#                 raise UserUtilityError(f"変数'{localval}'はグローバル変数とローカル変数の両方で定義されています。\n グローバル変数として使いたいときはグローバル宣言(global 変数名)をおこなってください")
