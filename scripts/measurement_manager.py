@@ -11,13 +11,9 @@ from logging import getLogger
 from typing import Optional, Union
 
 import calibration as calib
-from measurement_manager_support import (
-    CommandReceiver,
-    FileManager,
-    MeasurementState,
-    MeasurementStep,
-    PlotAgency,
-)
+from measurement_manager_support import (CommandReceiver, FileManager,
+                                         MeasurementState, MeasurementStep,
+                                         PlotAgency)
 from variables import USER_VARIABLES
 
 logger = getLogger(__name__)
@@ -66,7 +62,7 @@ def set_label(label: str) -> None:
     """ラベルをファイルに書き込み"""
     if _measurement_manager.state.current_step != MeasurementStep.START:
         logger.warning(sys._getframe().f_code.co_name + "はstart関数内で用いてください")
-    _measurement_manager.file_manager.write(label)
+    _measurement_manager.file_manager.write(label+"\n")
 
 
 def write_file(text: str) -> None:
