@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import re
 import textwrap
-from dataclasses import dataclass, is_dataclass
 from typing import Any
 
 from utility import MyException
