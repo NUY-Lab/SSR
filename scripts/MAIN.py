@@ -11,16 +11,17 @@ from logging import getLogger
 from pathlib import Path
 from typing import Callable
 
-import win32api
-import win32con
-
 import measurement_manager as mm
 import variables
+import win32api
+import win32con
 from define import read_deffile
-from log import set_user_log, setlog
 from macro import get_macro, get_macro_split, get_macropath
+from macro_grammar import macro_grammer_check
 from utility import MyException, ask_open_filename
 from variables import USER_VARIABLES
+
+from log import set_user_log, setlog
 
 logger = getLogger(__name__)
 
@@ -60,6 +61,9 @@ def main() -> None:
 
     # マクロファイルをマクロに変換
     macro = get_macro(macropath)
+
+    # マクロがSSRの文法規則を満たしているかチェック
+    macro_grammer_check(macro)
 
     # 強制終了時の処理を追加
     on_forced_termination(lambda: mm.finish())

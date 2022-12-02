@@ -14,11 +14,10 @@ from multiprocessing import managers
 from sqlite3 import Time
 from typing import List, Tuple
 
+from LinkamT95.IO import LinkamT95IO
 from measurement_manager import MeasurementManager, MeasurementState
 from sympy import im
 from utility import MyException
-
-from LinkamT95.IO import LinkamT95IO
 
 logger = getLogger(__name__)
 
@@ -126,6 +125,9 @@ class LinkamT95AutoController:
     """
 
     class Timer:
+        """
+        温度に到達したあとに設定時間分だけ待つタイマー
+        """
         __time__start = None
         __hold__time = None
 
@@ -134,16 +136,23 @@ class LinkamT95AutoController:
             self.__hold__time = hold_time_min
 
         def is_completed(self) -> bool:
-            return self.__time__start - time.time() >= self.__hold__time * 60
+            return time.time() - self.__time__start >= self.__hold__time * 60
 
     class SequenceList:
+        """
+        設定シーケンスを保持するリスト
+        """
         __index = 0
         __sequence_list: List[Sequence] = []
 
         def add_sequence(self, sequence: Sequence):
             self.__sequence_list.append(sequence)
+    
 
         def get_next_sequence(self):
+            """
+            次のシーケンスを返す。終了時はNoneを返す
+            """
             if self.__index < len(self.__sequence_list):
                 seq = self.__sequence_list[self.__index]
                 self.__index += 1
@@ -167,6 +176,20 @@ class LinkamT95AutoController:
         self.__controller.connect(COMPORT)
 
     def add_sequence(self, T: int, hold: int, rate: int, lnp: int):
+        """
+        温度シーケンスの追加
+
+        Parameters
+        ------------
+        T:int
+            温度
+        hold:int
+            温度保持時間(分)
+        rate:int
+            温度変化率(℃/分)
+        lnp:
+            窒素速度(Autoは)
+        """
         self.__sequence_list.add_sequence(
             Sequence(
                 temperature=T, hold_time_min=hold, temp_per_min=rate, lnp_speed=lnp
@@ -174,7 +197,8 @@ class LinkamT95AutoController:
         )
 
     def start_sequence(self):
-        measurement_state = MeasurementManager.get_measurement_state()
+        """温度シーケンスを実行"""
+        measurement_state = MeasurementManager.get_measurement_state() #測定が強制終了されたときにこっちも終了できるように測定Stateを取得しておく
         measure_thread = threading.Thread(
             target=LinkamT95AutoController._controller_thread,
             args=(
@@ -182,26 +206,31 @@ class LinkamT95AutoController:
                 measurement_state,
             ),
         )
-        measure_thread.setDaemon(True)
+        measure_thread.setDaemon(True) #デーモンスレッド化
         measure_thread.start()
 
     @staticmethod
     def _controller_thread(autoController: LinkamT95AutoController, measurement_state):
+        #別スレッドでLinkamを動かし続ける
         while True:
             time.sleep(3)
-            if autoController.__update(measurement_state):
+            if autoController.__update(measurement_state):# 測定が終了したときにはFalseが返ってくる
+                autoController.stop() 
                 break
 
     def __update(self, measurement_state: MeasurementState):
-        if self.__now_sequence is None:
+        """次の処理を判断する"""
+        if self.__now_sequence is None: #一番最初は__now_sequenceがNoneなのでここが呼ばれる(はず)
             self.__now_sequence = self.__sequence_list.get_next_sequence()
             self.__controller.run_program(
                 self.__now_sequence.temperature,
                 self.__now_sequence.temp_per_min,
                 self.__now_sequence.lnp_speed,
-            )
-        if self.__timer is not None:
-            if self.__timer.is_completed():
+            )#シーケンス実行
+
+        #二回目以降はこっちが呼ばれる
+        if self.__timer is not None: #self.__timerは目的温度に到達してからホールド時間になるまでを測るタイマー
+            if self.__timer.is_completed(): #ホールド時間になったら次の温度シーケンスへ
                 next_sequence = self.__sequence_list.get_next_sequence()
                 if next_sequence is not None:
                     self.__controller.run_program(
@@ -211,20 +240,23 @@ class LinkamT95AutoController:
                     )
                     self.__now_sequence = next_sequence
                     self.__timer = None
-                else:
+                else: #次の温度シーケンスがなければ終了(Falseを返す)
                     logger.info("temperature sequence completed ...")
                     return False
-        else:
-            (
-                has_reached_target_temperature,
-                _,
-            ) = self.__controller.get_status()
-            if has_reached_target_temperature:
+        else:#目的温度に達するまではタイマーがNoneなのでこっちが呼ばれる
+            has_reached_target_temperature,_, = self.__controller.get_status() #今の状態を取得
+            if has_reached_target_temperature: #目的温度に達したらタイマーを生成する
                 self.__timer = self.Timer()
                 self.__timer.start(self.__now_sequence.hold_time_min)
 
-        if measurement_state.has_finished_measurement():
-            self.__controller.stop()
+        if measurement_state.has_finished_measurement(): #測定が強制終了するような場合にはここが呼ばれる
             logger.info("temperature sequence stopped ...")
             return False
         return True
+
+    def cancel_sequence(self):
+        """中断"""
+        self.__controller.stop()
+        self.__sequence_list= self.SequenceList()
+        self.__timer=self.Timer()
+        

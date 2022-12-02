@@ -175,7 +175,7 @@ class FileManager:  # ファイルの管理
         text = ""
 
         for data in args:
-            if isinstance(data, tuple) or data is list:
+            if  hasattr(data, "__iter__") or isinstance(data, tuple) or data is list:
                 text += self.delimiter.join(map(str, data))
             else:
                 text += str(data)
