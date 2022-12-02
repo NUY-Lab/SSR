@@ -2,7 +2,6 @@
 LinkamT95と直接通信するクラスや入力値の検証を行うクラスが入っている
 """
 import math
-import time
 from enum import Enum
 from logging import getLogger
 from typing import Tuple

@@ -6,17 +6,11 @@ from __future__ import annotations
 import dataclasses
 import threading
 import time
-from abc import ABCMeta, abstractmethod
-from collections import namedtuple
-from concurrent.futures import thread
 from logging import getLogger
-from multiprocessing import managers
-from sqlite3 import Time
 from typing import List, Tuple
 
 from LinkamT95.IO import LinkamT95IO
 from measurement_manager import MeasurementManager, MeasurementState
-from sympy import im
 from utility import MyException
 
 logger = getLogger(__name__)
