@@ -23,6 +23,8 @@ class Data(BaseData):
     frequency:"[Hz]"
     temperature:"[K]"
     capacitance:"[C]"
+    permittivity_real:""
+    permittivity_image:""
     tan_delta:""
     resistance_Pt:"[Ohm]"
 
@@ -62,7 +64,7 @@ def start():
     
     set_label(label + "\n" + Data.to_label()) # ファイル先頭にラベルを付けておく
     calibration.set_shared_calib_file() #キャリブレーションの準備(shared_settings/calibration_fileフォルダから温度補正情報を取得)
-    set_plot_info(line=True,xlog=False,ylog=False,renew_interval=1,flowwidth=0,legend=False)
+    set_plot_info(line=False,xlog=False,ylog=False,renew_interval=1,flowwidth=0,legend=False) #プロット条件指定
     start_time=time.time()
 
     #Linkamに温度シーケンスを送信&実行
@@ -80,7 +82,7 @@ def update():
     if data.time>5*60*60: #5時間経ったら勝手に終了するように
         return False
     save(data)
-    plot(data)
+    plot(data.temperature,data.permittivity_real)
 
 
 def get_data():
