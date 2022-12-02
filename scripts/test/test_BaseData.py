@@ -11,9 +11,9 @@ class TestLinkamT95IO(unittest.TestCase):
     def test1(self):
         class Data(BaseData):
             x:"[mV]"
-            y:"[m]"=2
+            y:"[m]"
        
-        data=Data(1)
+        data=Data(1,2)
         self.assertEqual(data.x,1)
         self.assertEqual(data.y,2)
         data.x=0
@@ -26,6 +26,10 @@ class TestLinkamT95IO(unittest.TestCase):
 
     def test2(self):
         #不正な型定義
+        with self.assertRaises(BaseData.BaseDataError):
+            class Data(BaseData):
+                x:"[mV]"
+                y:"[mV]"=10
         with self.assertRaises(BaseData.BaseDataError):
             class Data(BaseData):
                 x:"[mV]"
@@ -63,7 +67,7 @@ class TestLinkamT95IO(unittest.TestCase):
         #コンストラクタを書いた場合
         class Data(BaseData):
             x:"[mV]"
-            y:"[m]"=2
+            y:"[m]"
 
             def __init__(self,x) -> None:
                 self.x=100
@@ -71,4 +75,6 @@ class TestLinkamT95IO(unittest.TestCase):
 
         data=Data(0)
         self.assertEqual(data.x,100)
+
+    
         

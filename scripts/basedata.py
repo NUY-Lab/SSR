@@ -64,13 +64,11 @@ class BaseData():
             assign_text=""
             default=False
             for parameter_name in annotations.keys():
-                if (parameter_default:=cls.__dict__.get(parameter_name)) is not None:
-                    parameter_text+=f"{parameter_name}={parameter_default},"
-                    default=True
-                else:
+                if cls.__dict__.get(parameter_name) is None:
                     parameter_text+=f"{parameter_name},"
-                    if default:
-                        raise cls.BaseDataError(f"{cls.__name__}クラスの変数定義の方法にエラーが存在します。\nデフォルト値を設定した変数のあとにデフォルト値のない変数を宣言することはできません。")
+                else:
+                    raise cls.BaseDataError(f"{cls.__name__}クラスの変数定義の方法にエラーが存在します。\nBaseDataを継承したクラスではデフォルト値を設定することはできません。")
+
                 assign_text+=f"self.{parameter_name}={parameter_name};"
             
             parameter_text=parameter_text[:-1]
@@ -85,6 +83,7 @@ class BaseData():
             """
             init_text=textwrap.dedent(init_text)
             exec(init_text) #文字列で書いたコードを実行
+
 
                
         
