@@ -67,6 +67,10 @@ def start():
     set_plot_info(line=False,xlog=False,ylog=False,renew_interval=1,flowwidth=0,legend=False) #プロット条件指定
     start_time=time.time()
 
+
+    #Keithley2000の初期設定
+    Keithley.write("SENS:FUNC 'FRES'") #四端子抵抗測定
+
     #Linkamに温度シーケンスを送信&実行
     Linkam.add_sequence(T=300,hold=1,rate=10,lnp=1)
     Linkam.add_sequence(T=30,hold=0,rate=10,lnp=-1)
