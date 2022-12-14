@@ -23,7 +23,7 @@ class Data(BaseData):
     frequency:"[Hz]"
     temperature:"[K]"
     capacitance:"[C]"
-    permittivity_real:""
+    permittivity_real:"" # 単位がないときは""をつける
     permittivity_image:""
     tan_delta:""
     resistance_Pt:"[Ohm]"
@@ -38,6 +38,7 @@ ADRESS_LCR=7 #LCRのGPIB番号
 ADRESS_Keithley=11 # Keithley2000のGPIB番号
 COMPORT_LinkamT95="COM3" #Linkamのシリアルポート番号
 
+#測定に使う機械はここで宣言しておく
 LCR=GPIBController()
 Keithley=GPIBController()
 Linkam=LinkamT95AutoController()
@@ -53,13 +54,17 @@ def start():
     #機器に接続
     LCR.connect(ADRESS_LCR)
     Keithley.connect(ADRESS_Keithley)
-    Linkam.connect(COMPORT_LinkamT95)
+    #Linkam.connect(COMPORT_LinkamT95) #シリアルポートのついてないLinkamもあったのでこのコマンドはコメントアウトしました
+
+    filename=input("filename is >") #ファイル名の入力
+    set_file_name(filename)
+
 
     #電極面積, 試料の厚さを入力
     electrode_area=float(input("s is > ")) #電極面積入力
     depth=float(input("d is > ")) #試料の厚さ入力
 
-    volt=LCR.query("VOLT?") # LCRの電圧を取得
+    volt=LCR.query("VOLT?").replace(" ","") # LCRの電圧を取得
     label="s="+str(electrode_area)+"[mm2], d="+str(depth)+"[mm], V="+volt+"[V]"#ファイルの先頭につけるラベル
     
     set_label(label + "\n" + Data.to_label()) # ファイル先頭にラベルを付けておく
@@ -71,14 +76,14 @@ def start():
     #Keithley2000の初期設定
     Keithley.write("SENS:FUNC 'FRES'") #四端子抵抗測定
 
-    #Linkamに温度シーケンスを送信&実行
-    Linkam.add_sequence(T=300,hold=1,rate=10,lnp=1)
-    Linkam.add_sequence(T=30,hold=0,rate=10,lnp=-1)
-    Linkam.add_sequence(T=-70,hold=1,rate=10,lnp=-1)
-    Linkam.add_sequence(T=30,hold=0,rate=10,lnp=-1)
-    Linkam.add_sequence(T=300,hold=1,rate=10,lnp=1)
-    Linkam.add_sequence(T=30,hold=0,rate=10,lnp=1)
-    Linkam.start_sequence()
+    #Linkamに温度シーケンスを送信&実行 #シリアルポートのついてないLinkamがあったのでこのコマンドはコメントアウトしました
+    # Linkam.add_sequence(T=300,hold=1,rate=10,lnp=1)
+    # Linkam.add_sequence(T=30,hold=0,rate=10,lnp=-1)
+    # Linkam.add_sequence(T=-70,hold=1,rate=10,lnp=-1)
+    # Linkam.add_sequence(T=30,hold=0,rate=10,lnp=-1)
+    # Linkam.add_sequence(T=300,hold=1,rate=10,lnp=1)
+    # Linkam.add_sequence(T=30,hold=0,rate=10,lnp=1)
+    # Linkam.start_sequence()
 
 
 def update():
@@ -89,7 +94,7 @@ def update():
     plot(data.temperature,data.permittivity_real)
 
 
-def get_data():
+def get_data(): #実際に測定してる部分
     global count
     elapsed_time=time.time()-start_time
 
@@ -98,10 +103,10 @@ def get_data():
 
     time.sleep(0.5)#0.5秒待つ
 
-    lcr_ans=LCR.query("FETC?")#データ読み取り(lcr_ansはコンマ区切りの文字列)
+    lcr_ans=LCR.query("FETC?")#LCRのデータ読み取り(lcr_ansはコンマ区切りの文字列)
     array_string = lcr_ans.split(",")#コンマでわけて配列にする
-    capacitance=float(array_string[0])#配列の0番目を文字列から少数に
-    tan_delta=float(array_string[1])
+    capacitance=float(array_string[0])#配列の0番目(今回は静電容量)を文字列から少数に
+    tan_delta=float(array_string[1])#配列の1番目(今回はtanδ)を文字列から少数に
 
     
     permittivity_real=capacitance*depth/(electrode_area*e0)*1000#誘電率実部 (1000は単位合わせ)
@@ -120,7 +125,7 @@ def get_data():
     return Data(time=elapsed_time,frequency=frequency,temperature=temperature,capacitance=capacitance,permittivity_real=permittivity_real,permittivity_image=permittivity_image,tan_delta=tan_delta,resistance_Pt=resistnce)
 
 
-def bunkatsu(filepath):
+def split(filepath):#測定ファイルを周波数分割
     TMR_split(filepath,T_index=2,f_index=1,freq_num=16,sample_and_cutout_num=(150,120),step=30)
 
 
