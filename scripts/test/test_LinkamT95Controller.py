@@ -8,10 +8,11 @@ from sympy import Dummy
 
 sys.path.append("../")
 import serial
-from LinkamT95.Controller import (LinkamT95AutoController,
-                                  LinkamT95ControllerError,
-                                  LinkamT95ManualController)
-from LinkamT95.IO import LinkamT95Error, LinkamT95IO, LinkamT95SerialIO
+from ExternalControl.LinkamT95.Controller import (LinkamT95AutoController,
+                                                  LinkamT95ControllerError,
+                                                  LinkamT95ManualController)
+from ExternalControl.LinkamT95.IO import (LinkamT95Error, LinkamT95IO,
+                                          LinkamT95SerialIO)
 from measurement_manager_support import MeasurementState, MeasurementStep
 
 COMMAND = ""

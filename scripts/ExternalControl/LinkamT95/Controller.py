@@ -10,7 +10,7 @@ import time
 from logging import getLogger
 from typing import List, Tuple
 
-from LinkamT95.IO import LinkamT95IO
+from ExternalControl.LinkamT95.IO import LinkamT95IO
 from measurement_manager import MeasurementManager, MeasurementState
 from utility import MyException
 

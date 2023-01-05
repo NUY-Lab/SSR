@@ -7,7 +7,8 @@ from requests import patch
 
 sys.path.append("../")
 import serial
-from LinkamT95.IO import LinkamT95Error, LinkamT95IO, LinkamT95SerialIO
+from ExternalControl.LinkamT95.IO import (LinkamT95Error, LinkamT95IO,
+                                          LinkamT95SerialIO)
 
 COMMAND = ""
 
