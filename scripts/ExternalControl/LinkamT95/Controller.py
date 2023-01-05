@@ -1,5 +1,6 @@
 """
 LinkamT95をマクロから動かすコントローラー
+新しいLinkamT95はシリアルポートが無くなったので使えないかも
 """
 from __future__ import annotations
 
