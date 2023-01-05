@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import List, Optional, Union
 
 import plot
+import pyperclip
 from utility import MyException
 from variables import USER_VARIABLES
 
@@ -113,7 +114,8 @@ class FileManager:  # ファイルの管理
             ファイル名の前に日付をつけるかどうか
 
         """
-        self.check_has_file_ng_word(new_filename)
+        self.check_has_file_ng_word(new_filename)#ファイル名に使えない文字がないかチェック
+        pyperclip.copy(new_filename)#ファイル名をコピーしておく
         if add_date:
             self._filename = self.get_date_text() + "_" + new_filename + ".txt"
         else:
