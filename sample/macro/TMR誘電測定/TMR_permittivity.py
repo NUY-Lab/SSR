@@ -48,7 +48,7 @@ calibration=TMRCalibrationManager()
 e0= 8.8541878128*10**(-12)#真空の誘電率
 
 
-def start():
+def start():#最初に1回だけ実行される処理
     global electrode_area,depth,start_time #グローバル変数にはグローバル宣言をつける
 
     #機器に接続
@@ -86,19 +86,19 @@ def start():
     # Linkam.start_sequence()
 
 
-def update():
-    data=get_data()
+def update():#測定中に何度も実行される処理
+    data=get_data()#データ取得
     if data.time>5*60*60: #5時間経ったら勝手に終了するように
         return False
-    save(data)
-    plot(data.temperature,data.permittivity_real)
+    save(data)#セーブ
+    plot(data.temperature,data.permittivity_real)#プロット
 
 
 def get_data(): #実際に測定してる部分
     global count
     elapsed_time=time.time()-start_time
 
-    frequency=pow(10,3+count*0.2)
+    frequency=pow(10,3+count*0.2)#周波数は10の(3+count*0.2)乗 (今回は3乗から6乗まで)
     LCR.write("FREQ "+str(frequency)) #周波数設定
 
     time.sleep(0.5)#0.5秒待つ
@@ -118,7 +118,7 @@ def get_data(): #実際に測定してる部分
 
     
   
-    count=(count+1)%16
+    count=(count+1)%16 #countを1進める(16までいったら0に戻す)
     
 
     #データに中身を入れて返す
