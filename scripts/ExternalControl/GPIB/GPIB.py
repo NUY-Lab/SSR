@@ -3,7 +3,6 @@ from logging import getLogger
 from typing import Union
 
 import pyvisa
-
 from utility import MyException
 
 logger = getLogger(__name__)
@@ -50,7 +49,7 @@ class GPIBController:
         if type(address) is int:
             address = f"GPIB0::{address}::INSTR"
         elif type(address) is not str:
-            raise GPIBError("get_instrumentの引数はintかstrでなければなりません")
+            raise GPIBError("GPIBController.connectの引数はintかstrでなければなりません")
 
         try:
             resource_manager = pyvisa.ResourceManager()
