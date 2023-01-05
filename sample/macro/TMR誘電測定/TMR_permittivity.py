@@ -2,9 +2,9 @@ import time
 
 from basedata import BaseData
 from calibration import TMRCalibrationManager
-from GPIB import \
+from ExternalControl.GPIB.GPIB import \
     GPIBController  # GPIBで接続する機器につながる# inst=GPIBController() でインスタンス作成 # inst.connect(<GPIBアドレス>)で接続 # inst.write(<コマンド>)でコマンド送信 # answer = inst.query(<コマンド>)でコマンド送信&読み取り
-from LinkamT95.Controller import \
+from ExternalControl.LinkamT95.Controller import \
     LinkamT95AutoController  # リンカムの操作 # inst=LinkamT95AutoController() でインスタンス作成 # inst.connect(<COMPORTアドレス>)で接続(COMPORTアドレスはデバイスマネージャーからわかる) # inst.add_sequence(<コマンド>)でコマンド送信 # answer = inst.query(<コマンド>)でコマンド送信&読み取り
 from measurement_manager import finish  # 測定の終了 引数なし
 from measurement_manager import no_plot  # プロットしないときに使う
