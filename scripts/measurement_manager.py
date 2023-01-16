@@ -32,9 +32,19 @@ def finish() -> None:
     _measurement_manager.is_measuring = False
 
 
-def set_file_name(filename: str) -> None:
-    """ファイル名をセット"""
-    _measurement_manager.file_manager.set_filename(filename)
+def set_file_name(filename: str,add_date: bool = True) -> None:
+    """
+    ファイル名をセット
+
+    Parameter
+    -----------
+    filename : str
+        ファイル名
+    add_date : bool
+        ファイル名の先頭に日付をつけるかどうか
+
+    """
+    _measurement_manager.file_manager.set_filename(filename,add_date)
 
 
 def set_calibration(filepath_calib: Optional[str] = None) -> None:
@@ -108,6 +118,15 @@ def set_plot_info(
         flowwidth=flowwidth,
     )
 
+def dont_make_file():
+    """
+    ファイルを作成しないときはこれを呼ぶ
+    これを呼んだあとにファイル操作系の関数を呼ぶとエラーを吐く
+    """
+    if _measurement_manager.state.current_step != MeasurementStep.START:
+        logger.warning(sys._getframe().f_code.co_name + "はstart関数内で用いてください")
+    _measurement_manager.dont_make_file()
+    
 
 def save_data(*data: Union[tuple, str]) -> None:
     """データのセーブ"""
@@ -191,6 +210,7 @@ class MeasurementManager:
     command_receiver = None
     state = MeasurementState()
     is_measuring = False
+    _dont_make_file=False
 
     @classmethod
     def set_measurement_state(cls, state: MeasurementState):
@@ -224,9 +244,10 @@ class MeasurementManager:
         if self.macro.start is not None:
             self.macro.start()
 
-        self.file_manager.create_file(
-            do_make_folder=(self.macro.split is not None),
-        )  # ファイル作成
+        if not self._dont_make_file:
+            self.file_manager.create_file(
+                do_make_folder=(self.macro.split is not None),
+            )  # ファイル作成
 
         self.plot_agency.run_plot_window()  # グラフウィンドウの立ち上げ
 
@@ -268,14 +289,17 @@ class MeasurementManager:
             self.state.current_step = MeasurementStep.END
             self.macro.end()
 
-        self.file_manager.close()  # ファイルはend関数の後で閉じる
+        if not self._dont_make_file:
+            self.file_manager.close()  # ファイルはend関数の後で閉じる
 
         self.state.current_step = MeasurementStep.AFTER
-        if self.macro.split is not None:
-            self.macro.split(self.file_manager.filepath)
 
-        if self.macro.after is not None:
-            self.macro.after(self.file_manager.filepath)
+        if not self._dont_make_file:
+            if self.macro.split is not None:
+                self.macro.split(self.file_manager.filepath)
+
+            if self.macro.after is not None:
+                self.macro.after(self.file_manager.filepath)
 
         self.end()
 
@@ -322,3 +346,6 @@ class MeasurementManager:
                     self.plot_agency.close()
                 break
             time.sleep(0.05)
+
+    def dont_make_file(self):
+        self._dont_make_file=True
