@@ -126,6 +126,6 @@ def get_data(): #実際に測定してる部分
 
 
 def split(filepath):#測定ファイルを周波数分割
-    TMR_split(filepath,T_index=2,f_index=1,freq_num=16,sample_and_cutout_num=(150,120),step=30)
+    TMR_split(filepath,T_index=2,f_index=1,freq_num=16,sample_and_cutout_num=(150,120),step=30,name_temperaturesplitfolder=None,name_frequencesplitfile=None)
 
 
