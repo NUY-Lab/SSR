@@ -16,7 +16,8 @@ import variables
 import win32api
 import win32con
 from define import read_deffile
-from macro import get_macro, get_macro_split, get_macropath
+from macro import (get_macro, get_macro_recalculate, get_macro_split,
+                   get_macropath)
 from macro_grammar import macro_grammer_check
 from utility import MyException, ask_open_filename
 from variables import USER_VARIABLES
@@ -141,6 +142,27 @@ def split_only() -> None:
     input()
 
 
+def recalculate_only()->None:
+    print("再計算マクロ選択...")
+    macroPath = ask_open_filename(
+        filetypes=[("pythonファイル", "*.py *.SSR")], title="再計算マクロを選択してください"
+    )
+
+    os.chdir(str(macroPath.parent))
+    print(f"macro: {macroPath.stem}")
+
+    target = get_macro_recalculate(macroPath)
+
+    print("再計算ファイル選択...")
+    filePath = ask_open_filename(
+        filetypes=[("データファイル", "*.txt *dat")], title="再計算するファイルを選択してください"
+    )
+
+    target.recalculate(filePath)
+    
+    # 画面が閉じないようにinputをいれておく
+    input()
+
 def setting() -> None:
     """変数のセット"""
     variables.init(Path.cwd())
@@ -165,7 +187,7 @@ if __name__ == "__main__":
 
     # 引数によって測定モードか分割モードかを判定
     while True:
-        if mode in ["MEAS", "SPLIT"]:
+        if mode in ["MEAS", "SPLIT","RECALCULATE"]:
             break
         mode = input("mode is > ").upper()
 
@@ -173,8 +195,10 @@ if __name__ == "__main__":
     try:
         if mode == "MEAS":
             main()
-        else:
+        elif mode == "SPLIT":
             split_only()
+        elif mode=="RECALCULATE":
+            recalculate_only()
     # エラーは全てここでキャッチ
     except MyException as e:
         print("*****************Error*****************")
