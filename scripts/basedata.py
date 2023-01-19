@@ -111,4 +111,5 @@ class BaseData():
         """
         yield from  list(self.__dict__.values()) #変数をリストにして返す
 
-    
+    def __str__(self) -> str:
+        return ",".join([str(s) for s in self.__dict__.values()])

@@ -330,6 +330,8 @@ def TMR_split(
     sample_and_cutout_num: tuple[int, int] = (150, 120),
     step: int = 10,
     threshold: float = 0,
+    name_temperaturesplitfolder: str=None,
+    name_frequencesplitfile: str=None
 ):
     """
     TMR用の分割関数.
@@ -359,6 +361,12 @@ def TMR_split(
     threshold : float
         昇温降温判定でthreshold以下の温度変化は温度変化なしとみなす
 
+    name_temperaturesplitfolder: str
+        温度分割後のフォルダ名(Noneのときは分割前のファイル名を使う)
+
+    name_frequencesplitfile: str
+        周波数分割後のファイル名(Noneのときは分割前のファイル名を使う)
+
     """
 
     print("bunkatsu start...")
@@ -374,10 +382,16 @@ def TMR_split(
 
         displacement = split_data[len(split_data) - 1][T_index] - split_data[0][T_index]
         state = "heating" if displacement > 0 else "cooling"
-        new_dir = dirpath + "\\" + filename + "_" + str(count) + "_" + state
+
+        if name_temperaturesplitfolder is None:
+            name_temperaturesplitfolder=filename
+        if name_frequencesplitfile is None:
+            name_frequencesplitfile=filename
+
+        new_dir = dirpath + "\\" + name_temperaturesplitfolder + "_" + str(count) + "_" + state
 
         new_filepath = (
-            new_dir + "\\" + filename + "_" + str(count) + "_" + state + "_all.txt"
+            new_dir + "\\" + name_frequencesplitfile + "_" + str(count) + "_" + state + "_all.txt"
         )
         create_file(filepath=new_filepath, data=split_data, label=label)
 
@@ -392,7 +406,7 @@ def TMR_split(
             new_filepath = (
                 new_dir
                 + "\\"
-                + filename
+                + name_frequencesplitfile
                 + "_"
                 + str(count)
                 + "_"
@@ -406,4 +420,4 @@ def TMR_split(
 
         count += 1
 
-    print("file has been completely bunkatsued!!")
+    print("file has been completely splitted!!")
