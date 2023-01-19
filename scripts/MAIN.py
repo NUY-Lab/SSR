@@ -19,6 +19,7 @@ from define import read_deffile
 from macro import (get_macro, get_macro_recalculate, get_macro_split,
                    get_macropath)
 from macro_grammar import macro_grammer_check
+from recalculate import recalc
 from utility import MyException, ask_open_filename
 from variables import USER_VARIABLES
 
@@ -158,7 +159,7 @@ def recalculate_only()->None:
         filetypes=[("データファイル", "*.txt *dat")], title="再計算するファイルを選択してください"
     )
 
-    target.recalculate(filePath)
+    recalc(target,filePath)
     
     # 画面が閉じないようにinputをいれておく
     input()
