@@ -125,3 +125,18 @@ def get_macro_split(macroPath: Path) -> ModuleType:
         raise MacroError(f"{target.__name__}.splitには1つの引数が必要です")
 
     return target
+
+
+def get_macro_recalculate(macroPath: Path):
+    """マクロファイルを再計算マクロに変換"""
+    macroname = macroPath.stem
+    spec = spec_from_loader(macroname, SourceFileLoader(macroname, str(macroPath)))
+    target = module_from_spec(spec)
+    spec.loader.exec_module(target)
+
+    if not hasattr(target, "recalculate"):
+        raise MacroError(f"{target.__name__}.pyにはrecalculate関数を定義する必要があります")
+    elif target.recalculate.__code__.co_argcount != 1:
+        raise MacroError(f"{target.__name__}.recalculateには1つの引数が必要です")
+
+    return target
