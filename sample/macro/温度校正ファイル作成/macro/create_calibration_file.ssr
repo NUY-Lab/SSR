@@ -18,6 +18,8 @@ ADRESS_Keithley_center=11 # ステージ中央の白金抵抗を測るKeithley20
 ADRESS_Keithley_beside=12 # ステージ端の白金抵抗を測るKeithley2000のGPIB番号
 IS_4RES_CENTER=False #ステージ中央の白金抵抗を4端子法で測定するか (Falseなら2端子法)
 
+CALIBRATION_FILE_CENTER_Pt="JPT100JIS.dat" #ステージ中央の白金抵抗の温度変換表
+CALIBRATION_FILE_BESIDE_Pt="JPT100JIS.dat" #ステージ端の白金抵抗の温度変換表
 
 import datetime
 import math
@@ -53,8 +55,11 @@ Keithley_center=GPIBController()
 Keithley_beside=GPIBController()
 
 #白金抵抗の抵抗値を温度に変換する関数
-interpolate_data=np.loadtxt(fname="JPT100JIS.dat",delimiter="\t",unpack=True,skiprows=1)
-interpolate_func=interp1d(interpolate_data[1],interpolate_data[0],bounds_error=False,fill_value="extrapolate")
+interpolate_data=np.loadtxt(fname=CALIBRATION_FILE_CENTER_Pt,delimiter="\t",unpack=True,skiprows=1)
+interpolate_func_center=interp1d(interpolate_data[1],interpolate_data[0],bounds_error=False,fill_value="extrapolate")
+
+interpolate_data=np.loadtxt(fname=CALIBRATION_FILE_BESIDE_Pt,delimiter="\t",unpack=True,skiprows=1)
+interpolate_func_beside=interp1d(interpolate_data[1],interpolate_data[0],bounds_error=False,fill_value="extrapolate")
 
 
 def start():#最初に1回だけ実行される処理
@@ -92,8 +97,8 @@ def get_data(): #実際に測定してる部分
 
     resistnce_center=float(Keithley_center.query("FETCH?")) #プラチナ抵抗温度計の抵抗を取得
     resistnce_beside=float(Keithley_beside.query("FETCH?")) #プラチナ抵抗温度計の抵抗を取得
-    temperature_center=interpolate_func(resistnce_center) #抵抗値を温度に変換
-    temperature_beside=interpolate_func(resistnce_beside) #抵抗値を温度に変換
+    temperature_center=interpolate_func_center(resistnce_center) #抵抗値を温度に変換
+    temperature_beside=interpolate_func_beside(resistnce_beside) #抵抗値を温度に変換
 
     
   
