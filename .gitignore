@@ -6,4 +6,6 @@ __pycache__/
 /shared_settings/
 /sample/data/*.*
 /sample/temp/*.*
+data/
+temp/
 
