@@ -126,7 +126,7 @@ class TMRCalibrationManager:
         logger.info("calibration : %s", str(filepath_calib))
 
         self.interpolate_func = interpolate.interp1d(
-            x, y, fill_value="extrapolate"
+            x, y,bounds_error=False, fill_value="extrapolate"
         )  # 線形補間関数定義
 
     def calibration(self, x: float) -> float:
