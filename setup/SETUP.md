@@ -2,16 +2,17 @@
 
 ## 必要なもの（作成時の動作環境）
 
-- NIVISA (NIVISA1400) (runtimeで良い?)
-- NI-488.2 (NI4882_1760f0) (runtimeで良い)
+- NIVISA (NIVISA1400) (バージョン14.0)(runtimeで良い?)
+- NI-488.2 (NI4882_1760f0) (バージョン17.6) (runtimeで良い)
 - python (python3.9.7)
 
-
+*NI-488.2をインストールしたらNIVISAの17.5が自動で入るかも？
 
 ## NIVISAの設定（うろ覚えなので違うかも）
 
-1. NI-488.2のautorun.exeを起動しこれもデフォルト設定でインストール
-2. NIVISAのsetup.exeを起動しデフォルトの設定のままインストール
+1. NIVISAのsetup.exeを起動しデフォルトの設定のままインストール
+2. NI-488.2のautorun.exeを起動しこれもデフォルト設定でインストール
+
 
 
 ### NIVISAが正常に動作しているかの確認方法
