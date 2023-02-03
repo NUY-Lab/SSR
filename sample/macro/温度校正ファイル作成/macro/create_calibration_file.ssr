@@ -1,0 +1,176 @@
+"""
+ステージ中央の温度と端っこの白金抵抗の温度差を補正するキャリブレーションファイルを作成するマクロ
+
+
+必要なもの:
+    Keithley2000 × 2
+    ステージの端に銀ペーストでくっつけた白金抵抗(銀ペーストは導通してしまわないようにつける)
+    ステージの真ん中に置く白金抵抗(いつものせるサンプルと同じように下にカバーガラスを敷く)
+
+その他:
+    ステージ端につける白金抵抗は4端子法で測定する
+    ステージ上に置く抵抗値の読み取りは4端子法で行うのが良いが、2端子法でおこなってもいい。
+    2端子でおこなう場合は誘電率測定に使っているプローブを使用するのが良い(Keithley2000へのつなぎ方は4端子法と2端子法で異なるので気をつけること)
+
+"""
+
+ADRESS_Keithley_center=11 # ステージ中央の白金抵抗を測るKeithley2000のGPIB番号
+ADRESS_Keithley_beside=12 # ステージ端の白金抵抗を測るKeithley2000のGPIB番号
+IS_4RES_CENTER=False #ステージ中央の白金抵抗を4端子法で測定するか (Falseなら2端子法)
+
+
+import datetime
+import math
+import os
+import time
+
+import numpy as np
+from basedata import BaseData
+from ExternalControl.GPIB.GPIB import \
+    GPIBController  # GPIBで接続する機器につながる# inst=GPIBController() でインスタンス作成 # inst.connect(<GPIBアドレス>)で接続 # inst.write(<コマンド>)でコマンド送信 # answer = inst.query(<コマンド>)でコマンド送信&読み取り
+from measurement_manager import plot  # ウィンドウに点をプロット 引数は float,float
+from measurement_manager import save  # ファイルに保存 引数はtuple
+from measurement_manager import set_file_name  # ファイル名設定 引数は string
+from measurement_manager import set_label  # ファイルの先頭にラベル行をいれる
+from measurement_manager import set_plot_info  # プロット情報入力
+from scipy.interpolate import interp1d
+from split import TMR_split
+from variables import SHARED_VARIABLES
+
+
+#測定するデータの型とその単位を定義
+class Data(BaseData):
+    resistance_Pt_beside:"[Ohm]" #端っこの白金抵抗の抵抗値
+    temperature_beside:"[K]" #端っこの白金抵抗の抵抗値から見積もった端っこの温度
+    resistance_Pt_center:"[Ohm]" #中央の白金抵抗の抵抗値
+    temperature_center:"[K]" #中央の白金抵抗の抵抗値から見積もった中央の温度
+
+
+
+#測定に使う機械はここで宣言しておく
+
+Keithley_center=GPIBController()
+Keithley_beside=GPIBController()
+
+#白金抵抗の抵抗値を温度に変換する関数
+interpolate_data=np.loadtxt(fname="JPT100JIS.dat",delimiter="\t",unpack=True,skiprows=1)
+interpolate_func=interp1d(interpolate_data[1],interpolate_data[0],bounds_error=False,fill_value="extrapolate")
+
+
+def start():#最初に1回だけ実行される処理
+
+
+    #機器に接続
+
+    Keithley_center.connect(ADRESS_Keithley_center)
+    Keithley_beside.connect(ADRESS_Keithley_beside)
+
+    set_file_name("calibration_all")
+
+
+    
+    
+    set_label(Data.to_label()) # ファイル先頭にラベルを付けておく
+    set_plot_info(line=False,xlog=False,ylog=False,renew_interval=1,flowwidth=0,legend=False) #プロット条件指定
+    
+
+
+    #Keithley2000の初期設定
+    Keithley_beside.write("SENS:FUNC 'FRES'") #四端子抵抗測定
+    Keithley_center.write("SENS:FUNC 'FRES'" if IS_4RES_CENTER   else "SENS:FUNC 'RES'") # 四端子抵抗測定 or 二端子抵抗測定
+
+
+def update():#測定中に何度も実行される処理
+    data=get_data()#データ取得
+    save(data)#セーブ
+    plot(data.temperature_beside,data.temperature_center)#プロット
+    time.sleep(0.3)#0.3秒待つ
+
+
+
+def get_data(): #実際に測定してる部分
+
+    resistnce_center=float(Keithley_center.query("FETCH?")) #プラチナ抵抗温度計の抵抗を取得
+    resistnce_beside=float(Keithley_beside.query("FETCH?")) #プラチナ抵抗温度計の抵抗を取得
+    temperature_center=interpolate_func(resistnce_center) #抵抗値を温度に変換
+    temperature_beside=interpolate_func(resistnce_beside) #抵抗値を温度に変換
+
+    
+  
+    
+
+    #データに中身を入れて返す
+    return Data(resistance_Pt_beside=resistnce_beside,temperature_beside=temperature_beside,resistance_Pt_center=resistnce_center,temperature_center=temperature_center)
+
+
+def split(filepath):
+    
+    data=np.loadtxt(fname=filepath,delimiter=",",unpack=True,skiprows=1)
+
+    resistance_beside,temperature_center=zip(*sorted(zip(data[0],data[3]))) #ソートする
+
+    #以下ではresistance_besideの間隔を一定にした上で平均化によってなめらかにする
+    fitting_curve=interp1d(resistance_beside,temperature_center) 
+
+    min_res_beside=int(resistance_beside[0])
+    max_res_beside=int(resistance_beside[-1])
+    new_resistance_beside=np.linspace(min_res_beside,max_res_beside,(max_res_beside-min_res_beside)*5)#新しい抵抗値のリスト
+
+    new_temperature_center=smoothen(fitting_curve(new_resistance_beside),2)
+
+    calib_file_path= os.path.dirname(filepath)+"/"+get_date_text()+"_calibration.dat"
+
+    with open(calib_file_path,"x",encoding="utf-8",newline='\n') as f:
+        f.write("0:resistance_beside[Ohm], 1:temperature_center[K]\n")
+
+        for R,T in zip(new_resistance_beside,new_temperature_center):
+            f.write(f"{T}\t{R}\n") #今までの校正ファイルと同じ順番で保存
+
+
+    input(f"キャリブレーションファイルを{calib_file_path}に作成しました.\n{str(SHARED_VARIABLES.SETTINGDIR / 'calibration_file')}のファイルを新しいものに置き換えてください")
+    input("Enterを押すと終了します...")
+
+    
+
+
+
+
+
+
+def smoothen(target_list,average_halfwidth):
+    new_list=[]
+    for i in range(len(target_list)):
+        if(i<average_halfwidth) or ( i +average_halfwidth>= len(target_list)):
+            width=min(i,len(target_list)-1-i)
+        else:
+            width=average_halfwidth
+        new_list.append(sum(target_list[i-width:i+width+1])/(width*2+1))
+
+    return new_list
+
+
+    
+
+def get_date_text() -> str:
+    """
+    今日の日付を返す
+    """
+
+    dt_now = datetime.datetime.now()  # 日時取得
+
+    # 日時をゼロ埋めしたりしてからファイル名の先頭につける
+    year = str(dt_now.year)
+
+    datelabel = (
+        year[2]
+        + year[3]
+        + str(dt_now.month).zfill(2)
+        + str(dt_now.day).zfill(2)
+    )
+    return datelabel
+
+
+
+
+    
+    
