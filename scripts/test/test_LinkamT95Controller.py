@@ -8,11 +8,12 @@ from sympy import Dummy
 
 sys.path.append("../")
 import serial
-from ExternalControl.LinkamT95.Controller import (LinkamT95AutoController,
-                                                  LinkamT95ControllerError,
-                                                  LinkamT95ManualController)
-from ExternalControl.LinkamT95.IO import (LinkamT95Error, LinkamT95IO,
-                                          LinkamT95SerialIO)
+from ExternalControl.LinkamT95.Controller import (
+    LinkamT95AutoController,
+    LinkamT95ControllerError,
+    LinkamT95ManualController,
+)
+from ExternalControl.LinkamT95.IO import LinkamT95Error, LinkamT95IO, LinkamT95SerialIO
 from measurement_manager_support import MeasurementState, MeasurementStep
 
 COMMAND = ""
@@ -45,7 +46,6 @@ class TestLinkamT95IO(unittest.TestCase):
         COMMAND = ""
 
         def dummy_query(self, command):
-
             return (
                 b"\x10\x80"
                 + (8 * 16 + 15).to_bytes(1, "big")
@@ -60,7 +60,6 @@ class TestLinkamT95IO(unittest.TestCase):
             self.assertEqual(temperature, 350)
 
         def dummy_query(self, command):
-
             return (
                 b"\x30\x80"
                 + (8 * 16 + 15).to_bytes(1, "big")
@@ -81,7 +80,9 @@ from datetime import datetime
 
 import freezegun
 
-OUTPUT=""
+OUTPUT = ""
+
+
 class TestLinkamT95AutoController(unittest.TestCase):
     class DummyController(mock.MagicMock):
         def connect(self, COMPORT: str) -> None:
@@ -91,7 +92,7 @@ class TestLinkamT95AutoController(unittest.TestCase):
             self, temperature: int, temp_per_min: int, lnp_speed: int
         ) -> None:
             global OUTPUT
-            OUTPUT=f"{temperature}"
+            OUTPUT = f"{temperature}"
 
         def get_status(self):
             global dummy_has_reached_target_temperature
@@ -140,7 +141,7 @@ class TestLinkamT95AutoController(unittest.TestCase):
             controller._LinkamT95AutoController__update(measurementState), False
         )
 
-        #途中でMeasurementStateが変わったときに終了できるか
+        # 途中でMeasurementStateが変わったときに終了できるか
         measurementState = MeasurementState()
         measurementState.current_step = MeasurementStep.MEASURING
         controller = LinkamT95AutoController()
@@ -148,37 +149,55 @@ class TestLinkamT95AutoController(unittest.TestCase):
         controller.add_sequence(100, 0, 10, 10)
         dummy_has_reached_target_temperature = False
         for i in range(3):
-            self.assertEqual(controller._LinkamT95AutoController__update(measurementState), True)
+            self.assertEqual(
+                controller._LinkamT95AutoController__update(measurementState), True
+            )
         measurementState.current_step = MeasurementStep.FINISH_MEASURE
-        self.assertEqual(controller._LinkamT95AutoController__update(measurementState), False)
-        self.assertEqual(controller._LinkamT95AutoController__update(measurementState), False)
+        self.assertEqual(
+            controller._LinkamT95AutoController__update(measurementState), False
+        )
+        self.assertEqual(
+            controller._LinkamT95AutoController__update(measurementState), False
+        )
 
-
-        #温度到達してから設定時間経過したら次へ進めるかどうか
+        # 温度到達してから設定時間経過したら次へ進めるかどうか
         measurementState = MeasurementState()
         measurementState.current_step = MeasurementStep.MEASURING
         controller = LinkamT95AutoController()
         controller._LinkamT95AutoController__controller = self.DummyController()
-        with freezegun.freeze_time('2015-10-21 00:00:00') as freeze_datetime:
+        with freezegun.freeze_time("2015-10-21 00:00:00") as freeze_datetime:
             controller.add_sequence(100, 5, 10, 10)
             controller.add_sequence(200, 5, 10, 10)
             dummy_has_reached_target_temperature = True
             for i in range(3):
-                self.assertEqual(controller._LinkamT95AutoController__update(measurementState), True)
+                self.assertEqual(
+                    controller._LinkamT95AutoController__update(measurementState), True
+                )
             self.assertEqual(OUTPUT, "100")
-            
-            self.assertEqual(controller._LinkamT95AutoController__update(measurementState), True)
-            self.assertEqual(controller._LinkamT95AutoController__update(measurementState), True)
-        with freezegun.freeze_time('2015-10-21 00:04:03') as freeze_datetime:           
-            self.assertEqual(controller._LinkamT95AutoController__update(measurementState), True)
-        with freezegun.freeze_time('2015-10-21 00:05:03') as freeze_datetime:           
-            self.assertEqual(controller._LinkamT95AutoController__update(measurementState), True)
+
+            self.assertEqual(
+                controller._LinkamT95AutoController__update(measurementState), True
+            )
+            self.assertEqual(
+                controller._LinkamT95AutoController__update(measurementState), True
+            )
+        with freezegun.freeze_time("2015-10-21 00:04:03") as freeze_datetime:
+            self.assertEqual(
+                controller._LinkamT95AutoController__update(measurementState), True
+            )
+        with freezegun.freeze_time("2015-10-21 00:05:03") as freeze_datetime:
+            self.assertEqual(
+                controller._LinkamT95AutoController__update(measurementState), True
+            )
             self.assertEqual(OUTPUT, "200")
 
-            self.assertEqual(controller._LinkamT95AutoController__update(measurementState), True)
-            self.assertEqual(controller._LinkamT95AutoController__update(measurementState), True)
-        with freezegun.freeze_time('2015-10-21 00:10:19') as freeze_datetime:           
-            self.assertEqual(controller._LinkamT95AutoController__update(measurementState), False)
-        
-
-
+            self.assertEqual(
+                controller._LinkamT95AutoController__update(measurementState), True
+            )
+            self.assertEqual(
+                controller._LinkamT95AutoController__update(measurementState), True
+            )
+        with freezegun.freeze_time("2015-10-21 00:10:19") as freeze_datetime:
+            self.assertEqual(
+                controller._LinkamT95AutoController__update(measurementState), False
+            )

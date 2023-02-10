@@ -10,8 +10,11 @@ matplotlib = ">=3.6.3"
 pywin32 = ">=305"
 pyvisa = ">=1.13.0"
 pyserial = ">=3.5"
+pyperclip = ">=1.8.2"
 
 [dev-packages]
+black = ">=23.1.0"
+isort = ">=5.12.0"
 
 [requires]
 python_version = "3.11"

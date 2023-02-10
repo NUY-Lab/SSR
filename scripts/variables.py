@@ -1,14 +1,15 @@
 """共有度の高い変数を置いておく"""
 from pathlib import Path
+
 from utility import MyException
+
 
 class VariablesError(MyException):
     """変数関係のエラー"""
 
 
 class PathObject:
-    """
-    Pathインスタンスの型チェックとNoneチェックを担当
+    """Pathインスタンスの型チェックとNoneチェックを担当
 
     Property
     ------------
@@ -32,19 +33,18 @@ class PathObject:
 
 
 class USER_VARIABLES:
-    """
-    各ユーザーがそれぞれ個別に持つ変数
+    """各ユーザーがそれぞれ個別に持つ変数
+
     各プロパティに対応するセッターが存在する
 
     Property
-    ----------
+    --------
     TEMPDIR:Path
         一時フォルダのパス
     DATADIR:Path
         データ保存フォルダ
     MACRODIR:Path
         測定マクロのフォルダ
-
     """
 
     __TEMPDIR = PathObject()
@@ -84,13 +84,13 @@ class USER_VARIABLES:
 
 
 class SHARED_VARIABLES:
-    """
-    ユーザー間で共通してもつ変数
+    """ユーザー間で共通してもつ変数
+
     各プロパティに対応するセッターが存在する
     (注)扱うときは慎重に
 
     Proprety
-    -----------
+    --------
     SETTINGDIR:Path
         共有設定が保存されるフォルダのパス
     TEMPDIR:Path

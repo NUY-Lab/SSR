@@ -1,0 +1,6 @@
+[project]
+name = "SSR"
+readme = "docs/README.md"
+
+[tool.isort]
+profile = "black"
