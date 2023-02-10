@@ -4,7 +4,7 @@
 
 ## セットアップ
 
-[セットアップ方法](./setup/SETUP.md)を見てください。
+[セットアップ方法](./setup.md)を見てください。
 
 ## 定義ファイルの構成
 
@@ -115,14 +115,13 @@ mm.finish()
 
 mm.no_plot()
 #プロット画面を出さないときに呼ぶ
-
 ```
 
 *****
 
 ## split.py(=split)について
-```python
 
+```python
 split.file_open(filepath)
 # ファイルを開いてデータを配列で返す
 # filepath (str): 開くファイルのパス
@@ -170,6 +169,7 @@ split.TMR_split(filepath, T_index, f_index, freq_num=16, threshold=0)
 *****
 
 ## calibration.pyについて
+
 主にTMRの抵抗-温度変換の線形補間を行う
 
 ```python
@@ -187,16 +187,15 @@ TMRCalibrationManager : class
 
   TMRCalibrationManager.calibration(x: float)
   # プラチナ温度計の抵抗値xに対応する温度yを線形補間で返す
-
 ```
 
 *****
 
 ## GPIB.pyについて
+
 GPIBケーブルで繋がった機器にコマンドを送信する
 
 ```python
-
 get_instrument(adress) :inst
 # 機器の取得
 # adress:int or str 機器のGPIB番号
@@ -213,20 +212,15 @@ inst.write(command):Unit
 inst.read() :str
 # 機器からの応答を受け取る
 # inst.write(comannd) → inst.read() は inst.queryと(ほぼ)同じ
-
-
 ```
 
 *****
 
 ## variables.pyについて
-共有変数を格納しておくところ
-set_xxxで変数の格納、
-xxxで呼び出し
+
+共有変数を格納しておくところ set_xxxで変数の格納、xxxで呼び出し
 
 ```python
-
-
 variables.USER_VARIABLES :class
 # 各ユーザーがそれぞれ個別に持つ変数を持つクラス
 
@@ -261,8 +255,6 @@ variables.SHARED_VARIABLES : class
 
   variables.SHARED_VARIABLES.LOGDIR
   # 共有ログのあるフォルダのパス
-
-
 ```
 
 *****
