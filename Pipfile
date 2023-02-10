@@ -3,6 +3,11 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 name = "pypi"
 
+[scripts]
+meas = "python scripts/MAIN.py MEAS"
+split = "python scripts/MAIN.py SPLIT"
+recalc = "python scripts/MAIN.py RECALCULATE"
+
 [packages]
 scipy = ">=1.10.0"
 chardet = ">=5.1.0"
