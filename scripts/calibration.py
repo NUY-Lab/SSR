@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Callable, Optional
 
 from scipy import interpolate
-
 from utility import MyException, get_encode_type
 from variables import SHARED_VARIABLES
 
@@ -17,16 +16,14 @@ class CalibrationError(MyException):
 
 
 class TMRCalibrationManager:
-
-    """
-    TMRの温度校正を行う
+    """TMRの温度校正を行う
 
     Variables
-    -----------
+    ---------
         calib_file_name: キャリブレーションファイルの名前
 
     Methods
-    ---------
+    -------
         set_shared_calib_file():                SHARED_SETTINGSフォルダに入ったキャリブレーションファイルを使って温度校正を行います
 
         set_own_calib_file(filepath_calib:str): キャリブレーションを指定して温度校正を行います。普通は使いません。
@@ -75,16 +72,13 @@ class TMRCalibrationManager:
         self.__set(Path(filepath_calib))
 
     def __set(self, filepath_calib: Path) -> None:  # プラチナ温度計の抵抗値を温度に変換するためのファイルを読み込み
-        """
-        キャリブレーションファイルの2列目をx,1列目をyとして線形補間関数を作る.
-
+        """キャリブレーションファイルの2列目をx,1列目をyとして線形補間関数を作る.
 
         Parameter
         ---------
 
         filepath_calib : string
             キャリブレーションファイルのパス.
-
         """
 
         if not filepath_calib.is_file():
@@ -101,7 +95,6 @@ class TMRCalibrationManager:
         with filepath_calib.open(
             mode="r", encoding=get_encode_type(filepath_calib)
         ) as file:
-
             x = []
             y = []
 
@@ -126,13 +119,11 @@ class TMRCalibrationManager:
         logger.info("calibration : %s", str(filepath_calib))
 
         self.interpolate_func = interpolate.interp1d(
-            x, y,bounds_error=False, fill_value="extrapolate"
+            x, y, bounds_error=False, fill_value="extrapolate"
         )  # 線形補間関数定義
 
     def calibration(self, x: float) -> float:
-        """
-        プラチナ温度計の抵抗値xに対応する温度yを線形補間で返す
-        """
+        """プラチナ温度計の抵抗値xに対応する温度yを線形補間で返す"""
         try:
             y = self.interpolate_func(x)
         except ValueError as e:

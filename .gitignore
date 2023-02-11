@@ -1,11 +1,12 @@
+# python
+__pycache__/
+.venv/
+
+# SSR
 /example/
 /temp/
 /test/
 /log/
-__pycache__/
 /shared_settings/
 /sample/data/*.*
 /sample/temp/*.*
-data/
-temp/
-

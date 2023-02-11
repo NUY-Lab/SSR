@@ -7,8 +7,7 @@ from requests import patch
 
 sys.path.append("../")
 import serial
-from ExternalControl.LinkamT95.IO import (LinkamT95Error, LinkamT95IO,
-                                          LinkamT95SerialIO)
+from ExternalControl.LinkamT95.IO import LinkamT95Error, LinkamT95IO, LinkamT95SerialIO
 
 COMMAND = ""
 
@@ -68,7 +67,6 @@ class TestLinkamT95IO(unittest.TestCase):
             target.set_limit_temperature(601)
 
         def dummy_query(self, command):
-
             return (
                 b"\x10\x80"
                 + (8 * 16 + 15).to_bytes(1, "big")
@@ -84,7 +82,6 @@ class TestLinkamT95IO(unittest.TestCase):
             self.assertEqual(lnp, 50)
 
         def dummy_query(self, command):
-
             return (
                 b"\x01\x80"
                 + (8 * 16 + 30).to_bytes(1, "big")
