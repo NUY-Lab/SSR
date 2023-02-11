@@ -17,7 +17,7 @@ class MacroError(MyException):
     """マクロ関連のエラー"""
 
 
-def get_macropath() -> tuple[Path,str,Path]:
+def get_macropath() -> tuple[Path, str, Path]:
     """前回のマクロ名が保存されたファイルのパス"""
     path_premacroname = SHARED_VARIABLES.TEMPDIR / "premacroname"
     path_premacroname.touch()

@@ -50,12 +50,10 @@ def start_plot_window(
 
 
 class PlotWindow:
-    """
-
-    測定データをグラフにするクラス
+    """測定データをグラフにするクラス
 
     Variables
-    ____________
+    ---------
     share_list :List
         測定したデータを一時的に保管しておく場所
         非同期処理のため測定とプロットがずれるので, そのためにバッファーのようなものを挟む必要がある
@@ -78,8 +76,6 @@ class PlotWindow:
 
     linestyle : string
         グラフに線をつけるかどうか
-
-
     """
 
     _figure = None
@@ -115,9 +111,7 @@ class PlotWindow:
             plt.yscale("log")  # 縦軸をlogスケールに
 
     def run(self) -> None:
-        """
-        プロットの処理をループで回す
-        """
+        """プロットの処理をループで回す"""
         interval: int = self.interval
         while True:  # 一定時間ごとに更新
             self.renew_window()
@@ -136,9 +130,7 @@ class PlotWindow:
     min_y: Optional[float] = None
 
     def renew_window(self) -> None:
-        """
-        プロット画面の更新で呼ぶ関数
-        """
+        """プロット画面の更新で呼ぶ関数"""
         self.lock.acquire()  # 共有リストにロックをかける
         # share_listのコピーを作成.(temp=share_listにすると参照になってしまうのでdel self.share_list[:]でtempも消えてしまう)
         temp = self.share_list[:]  # [i for i in self.share_list]はかなり重い
@@ -237,7 +229,7 @@ class PlotWindow:
                     xarray = line_obj.xarray
                     yaaray = line_obj.yaaray
                     cut = 0
-                    for (i, xvalue) in enumerate(xarray):
+                    for i, xvalue in enumerate(xarray):
                         if xvalue < xmin:
                             continue
                         else:
@@ -249,9 +241,7 @@ class PlotWindow:
         self._figure.canvas.flush_events()  # グラフを再描画するおまじない
 
     class LineObj:
-        """
-        matplotlibでプロットしたグラフの線1つにつきこれが1つ作られる
-        """
+        """matplotlibでプロットしたグラフの線1つにつきこれが1つ作られる"""
 
         def __init__(self, line, xarray, yaaray):
             self.line = line

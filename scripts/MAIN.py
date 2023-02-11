@@ -16,8 +16,7 @@ import variables
 import win32api
 import win32con
 from define import read_deffile
-from macro import (get_macro, get_macro_recalculate, get_macro_split,
-                   get_macropath)
+from macro import get_macro, get_macro_recalculate, get_macro_split, get_macropath
 from macro_grammar import macro_grammer_check
 from recalculate import recalc
 from utility import MyException, ask_open_filename
@@ -43,7 +42,6 @@ def main() -> None:
     必要な関数(updateなど)があるか確認
     ↓
     measurementManager._measure_startを実行
-
     """
     # 定義ファイル読み取り
     read_deffile()
@@ -75,22 +73,21 @@ def main() -> None:
 
 
 def on_forced_termination(func: Callable[[None], None]) -> None:
-    """
-    強制終了時の処理を追加する
+    """強制終了時の処理を追加する
 
     Parameter
-    ----------
+    ---------
     func : func
         強制終了時に実行する関数
     """
 
     def consoleCtrHandler(ctrlType):
-        """
-        コマンドプロンプト上でイベントが発生したときに呼ばれる関数
+        """コマンドプロンプト上でイベントが発生したときに呼ばれる関数
+
         PC側で実行される(こちらから実行はしない)
 
         Parameter
-        ------------
+        ---------
         ctrlType:
             イベントの種類 (バツボタンクリックやcrtl + C など)
         """
@@ -143,7 +140,7 @@ def split_only() -> None:
     input()
 
 
-def recalculate_only()->None:
+def recalculate_only() -> None:
     print("再計算マクロ選択...")
     macroPath = ask_open_filename(
         filetypes=[("pythonファイル", "*.py *.SSR")], title="再計算マクロを選択してください"
@@ -159,10 +156,11 @@ def recalculate_only()->None:
         filetypes=[("データファイル", "*.txt *dat")], title="再計算するファイルを選択してください"
     )
 
-    recalc(target,filePath)
-    
+    recalc(target, filePath)
+
     # 画面が閉じないようにinputをいれておく
     input()
+
 
 def setting() -> None:
     """変数のセット"""
@@ -188,7 +186,7 @@ if __name__ == "__main__":
 
     # 引数によって測定モードか分割モードかを判定
     while True:
-        if mode in ["MEAS", "SPLIT","RECALCULATE"]:
+        if mode in ["MEAS", "SPLIT", "RECALCULATE"]:
             break
         mode = input("mode is > ").upper()
 
@@ -198,7 +196,7 @@ if __name__ == "__main__":
             main()
         elif mode == "SPLIT":
             split_only()
-        elif mode=="RECALCULATE":
+        elif mode == "RECALCULATE":
             recalculate_only()
     # エラーは全てここでキャッチ
     except MyException as e:

@@ -9,41 +9,35 @@ logger = getLogger(__name__)
 
 
 class GPIBError(MyException):
-    """GPIB関係のえらー"""
+    """GPIB関係のエラー"""
 
 
 def get_instrument(address: Union[int, str]) -> pyvisa.resources.Resource:
-    """
-    非推奨、下のGOIBControllerから使ってください
-    """
+    """非推奨、GPIBControllerを使ってください"""
     a = GPIBController()
     a.connect(address)
     return a._instrument
 
 
 class GPIBController:
-    """
-    GPIB機器に接続するクラス
-    """
+    """GPIB機器に接続するクラス"""
 
     _instrument = None
 
     def connect(self, address: Union[int, str]):
-        """
-        指定されたGPIBアドレスに接続(種類は調べない. 何かつながっていればOK)
+        """指定されたGPIBアドレスに接続(種類は調べない. 何かつながっていればOK)
 
         Parameters
-        _________
+        ----------
 
         address: string or int
             機器のGPIBアドレス stringならGPIB0::9::INSTRの形式
 
         Returns
-        _________
+        -------
 
         inst :型不明
             機器にアクセスできるインスタンス
-
         """
 
         if type(address) is int:
@@ -80,17 +74,13 @@ class GPIBController:
         self._instrument = inst
 
     def write(self, command):
-        """
-        機器に書き込み
-        """
+        """機器に書き込み"""
         if self._instrument is None:
             raise GPIBError("write()を呼ぶより前に機器に接続してください")
         self._instrument.write(command)
 
     def query(self, command):
-        """
-        機器に書き込みして読み取り
-        """
+        """機器に書き込みして読み取り"""
         if self._instrument is None:
             raise GPIBError("query()を呼ぶより前に機器に接続してください")
         return self._instrument.query(command)

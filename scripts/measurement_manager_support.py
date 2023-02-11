@@ -21,9 +21,7 @@ logger = getLogger(__name__)
 
 
 class MeasurementStep(Flag):
-    """
-    測定ステップ
-    """
+    """測定ステップ"""
 
     READY = auto()
     START = auto()
@@ -37,14 +35,12 @@ class MeasurementStep(Flag):
 
 
 class MeasurementState:
-    """
-    測定の状態を詰める
+    """測定の状態を詰める
 
     Attributes
-    -----------
+    ----------
     current_step: MeasurementStep
         現在のステップ
-
     """
 
     current_step: MeasurementStep = MeasurementStep.READY
@@ -57,11 +53,10 @@ class MeasurementState:
 
 
 class FileManager:  # ファイルの管理
-    """
-    ファイルの作成・書き込みを行う
+    """ファイルの作成・書き込みを行う
 
     Attributes
-    ------------
+    ----------
 
     filepath:str
         書き込んだファイルのパス
@@ -71,7 +66,6 @@ class FileManager:  # ファイルの管理
         ファイルのインスタンス
     delimiter:str
         区切り文字
-
     """
 
     class FileError(MyException):
@@ -102,8 +96,7 @@ class FileManager:  # ファイルの管理
         return self._filename
 
     def set_filename(self, new_filename: str, add_date: bool = True):
-        """
-        ファイル名を設定する際に使えない文字がないが入っていないか判定
+        """ファイル名を設定する際に使えない文字がないが入っていないか判定
 
         Attributes
 
@@ -112,10 +105,9 @@ class FileManager:  # ファイルの管理
 
         add_date : bool
             ファイル名の前に日付をつけるかどうか
-
         """
-        self.check_has_file_ng_word(new_filename)#ファイル名に使えない文字がないかチェック
-        pyperclip.copy(new_filename)#ファイル名をコピーしておく
+        self.check_has_file_ng_word(new_filename)  # ファイル名に使えない文字がないかチェック
+        pyperclip.copy(new_filename)  # ファイル名をコピーしておく
         if add_date:
             self._filename = self.get_date_text() + "_" + new_filename + ".txt"
         else:
@@ -144,15 +136,13 @@ class FileManager:  # ファイルの管理
         return datelabel
 
     def create_file(self, do_make_folder: bool = False) -> None:
-        """
-        新規でファイルを作り､__savefileに代入
+        """新規でファイルを作り､__savefileに代入
 
         Attributes
-        ---------------
+        ----------
 
         do_make_folder:bool
             フォルダを作るかどうか
-
         """
 
         if do_make_folder:
@@ -177,7 +167,7 @@ class FileManager:  # ファイルの管理
         text = ""
 
         for data in args:
-            if  hasattr(data, "__iter__") or isinstance(data, tuple) or data is list:
+            if hasattr(data, "__iter__") or isinstance(data, tuple) or data is list:
                 text += self.delimiter.join(map(str, data))
             else:
                 text += str(data)
@@ -186,8 +176,8 @@ class FileManager:  # ファイルの管理
         self.write(text)
 
     def write(self, text: str) -> None:
-        """
-        ファイルへの書き込み
+        """ファイルへの書き込み
+
         ファイルがまだ作成されていなければ別の場所に一次保存
         """
         if self._file is None:
@@ -213,9 +203,7 @@ class FileManager:  # ファイルの管理
 
 
 class CommandReceiver:  # コマンドの入力を受け取るクラス
-
-    """
-    コマンドの入力を検知する
+    """コマンドの入力を検知する
 
     Attributes
     ----------
@@ -266,14 +254,13 @@ class CommandReceiver:  # コマンドの入力を受け取るクラス
 
 
 class PlotAgency:
-
     """
     グラフ描画用のプロセスを別に作成して, そのプロセスに対して
     プロットするデータを送信する.
     実際のプロットはplot.pyが行うのでこのクラスはデータを渡すところを担っている.
 
-    Attributes:
-    --------------
+    Attributes
+    ----------
     share_list : List[tupple]
         plot.pyと共有するリスト. これを使ってplot.py側にデータを送信する.
 
@@ -285,7 +272,6 @@ class PlotAgency:
 
     plot_process: Process
         plot.pyを実行しているプロセス
-
     """
 
     class PlotAgentError(MyException):
@@ -300,8 +286,7 @@ class PlotAgency:
         self.set_plot_info()
 
     def run_plot_window(self) -> None:  # グラフと終了コマンド待ち処理を走らせる
-        """
-        SSRではマルチプロセスを用いて測定プロセスとは別のプロセスでグラフの描画を行う.
+        """SSRではマルチプロセスを用いて測定プロセスとは別のプロセスでグラフの描画を行う.
 
         Pythonのマルチプロセスでは必要な値はプロセスの作成時に渡しておかなくてはならないので､(例外あり)
         ここではマルチプロセスの起動と必要な引数の受け渡しを行う.
@@ -327,12 +312,12 @@ class PlotAgency:
         legend=False,
         flowwidth=0,
     ) -> None:  # プロット情報の入力
-        """
-        グラフ描画プロセスに渡す値はここで設定する.
+        """グラフ描画プロセスに渡す値はここで設定する.
+
         __plot_infoが辞書型なのはアンパックして引数に渡すため
 
         Parameter
-        __________________________
+        ---------
 
         line: bool
             プロットに線を引くかどうか
@@ -348,7 +333,6 @@ class PlotAgency:
 
         flowwidth : float (>0)
             これが0より大きい値のとき. グラフの横軸は固定され､横にプロットが流れるようなグラフになる.
-
         """
 
         if type(line) is not bool:
@@ -384,14 +368,13 @@ class PlotAgency:
         }
 
     def plot(self, x, y, label="default") -> None:
-        """
-        データをグラフ描画プロセスに渡す.
+        """データをグラフ描画プロセスに渡す.
+
         labelが変わると色が変わる
         __share_listは測定プロセスとグラフ描画プロセスの橋渡しとなるリストでバッファーの役割をする
 
-
         Parameter
-        __________________________
+        ---------
 
         x,y : float
             プロットのx,y座標
@@ -399,7 +382,6 @@ class PlotAgency:
         label : string or float
             プロットの識別ラベル.
             これが同じだと同じ色でプロットしたり､線を引き設定のときは線を引いたりする.
-
         """
 
         if self.is_plot_window_alive():
@@ -422,21 +404,17 @@ class PlotAgency:
         return self.plot_process.is_alive()
 
     def is_plot_window_forced_terminated(self) -> bool:
-        """
-        self.plot_processがバツボタンで強制終了されたかどうかを判定
+        """self.plot_processがバツボタンで強制終了されたかどうかを判定
+
         is_plot_window_aliveの逆に見えるが、not_run_plot_windowを実行した場合に挙動が異なる
         """
         return not self.plot_process.is_alive()
 
     class NoPlotAgency:
-        """
-        プロット無効状態のときにmeasurement.manager.plot_agencyにこのインスタンスを入れる
-        """
+        """プロット無効状態のときにmeasurement.manager.plot_agencyにこのインスタンスを入れる"""
 
         def __init__(self) -> None:
-            """
-            グラフを表示しないモード
-            """
+            """グラフを表示しないモード"""
 
             def void(*args):
                 """何も返さない関数"""
