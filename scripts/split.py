@@ -24,12 +24,10 @@ def heating_cooling_split(
     step: int = 10,
     threshold: float = None,
 ) -> List[List[List[float]]]:
-
-    """
-    heating,coolingを判断して分割する関数
+    """heating,coolingを判断して分割する関数
 
     Parameters
-    _____________
+    ----------
 
     data : 二次元配列
         瞬間の測定値の配列が並んだ二次元配列
@@ -47,7 +45,7 @@ def heating_cooling_split(
         直前のプロットからの温度変化がこれ以下なら温度変化を0として扱う
 
     Returns
-    _____________
+    -------
 
     new_data : 配列の配列
         分割したかたまりごとに配列につめる
@@ -86,7 +84,6 @@ def heating_cooling_split(
     state = 0  # 全体としての状態, heatingなら1,coolingなら-1,どっちでもなければ0
     split_points_hc = []  # 分割する点をいれる配列
     while True:
-
         sum_count = sum(samples_hc)  # 温度変化のサンプルの和をとる
 
         if sum_count > cutout_num:  # 閾値を設定してそれを超えるかどうかでheating,coolingを判定
@@ -125,11 +122,10 @@ def heating_cooling_split(
 
 
 def cyclic_split(data: List, cycle_num: int) -> List[List]:
-    """
-    周期的に分割
+    """周期的に分割
 
     Parameters
-    _____________
+    ----------
 
     data: List[float]
         分割する配列
@@ -138,10 +134,9 @@ def cyclic_split(data: List, cycle_num: int) -> List[List]:
         分割の周期
 
     Returns
-    _____________
+    -------
 
     new_data : 配列の配列
-
     """
 
     count = 0
@@ -164,12 +159,10 @@ def cyclic_split(data: List, cycle_num: int) -> List[List]:
 
 
 def from_num_to_10Exx(num: float, significant_digits=2) -> str:
-
-    """
-    数字を10Exx形式にして文字列として返す
+    """数字を10Exx形式にして文字列として返す
 
     Parameters
-    _____________
+    ----------
 
     num : int or float
         10Exx形式に変換させたい数字
@@ -178,7 +171,7 @@ def from_num_to_10Exx(num: float, significant_digits=2) -> str:
         変換後の有効数字. significant_digits=3なら10E3.49などが返る
 
     Returns
-    _____________
+    -------
 
     index_txt : 10Exx形式に変換した文字列
     """
@@ -196,16 +189,15 @@ def from_num_to_10Exx(num: float, significant_digits=2) -> str:
 
 
 def file_open(filepath: str) -> tuple[List[List[float]], str, str, str]:
-    """
-    ファイルを開いて中身を二次元配列で返す
+    """ファイルを開いて中身を二次元配列で返す
 
     Parameter
-    _________________
+    ---------
     filepath : string
         見鋳込むファイルのpath(絶対パスを想定)
 
     Returns
-    __________
+    -------
     data : 二次元配列
         ファイルの中身を二次元配列に変換した物
 
@@ -263,12 +255,10 @@ def file_open(filepath: str) -> tuple[List[List[float]], str, str, str]:
 
 
 def create_file(filepath: str, data: List[List], label: str = ""):
-    """
-    新規ファイル作成. フォルダがない場合は作る
-
+    """新規ファイル作成. フォルダがない場合は作る
 
     Parameters
-    _____________
+    ----------
 
     filepath : str
         作成するファイルのパス. パスに既にファイルが存在していればエラー
@@ -278,7 +268,6 @@ def create_file(filepath: str, data: List[List], label: str = ""):
 
     label : str
         ファイル冒頭のラベル
-
     """
 
     def array2d_to_text(array2d):
@@ -330,14 +319,13 @@ def TMR_split(
     sample_and_cutout_num: tuple[int, int] = (150, 120),
     step: int = 10,
     threshold: float = 0,
-    name_temperaturesplitfolder: str=None,
-    name_frequencesplitfile: str=None
+    name_temperaturesplitfolder: str = None,
+    name_frequencesplitfile: str = None,
 ):
-    """
-    TMR用の分割関数.
+    """TMR用の分割関数.
 
     Parameter
-    __________________________
+    ---------
 
     filepath : string
         分割元のファイルのパス
@@ -366,7 +354,6 @@ def TMR_split(
 
     name_frequencesplitfile: str
         周波数分割後のファイル名(Noneのときは分割前のファイル名を使う)
-
     """
 
     print("bunkatsu start...")
@@ -379,26 +366,39 @@ def TMR_split(
         step=step,
         threshold=threshold,
     ):  # 昇温降温で分割
-
         displacement = split_data[len(split_data) - 1][T_index] - split_data[0][T_index]
         state = "heating" if displacement > 0 else "cooling"
 
         if name_temperaturesplitfolder is None:
-            name_temperaturesplitfolder=filename
+            name_temperaturesplitfolder = filename
         if name_frequencesplitfile is None:
-            name_frequencesplitfile=filename
+            name_frequencesplitfile = filename
 
-        new_dir = dirpath + "\\" + name_temperaturesplitfolder + "_" + str(count) + "_" + state
+        new_dir = (
+            dirpath
+            + "\\"
+            + name_temperaturesplitfolder
+            + "_"
+            + str(count)
+            + "_"
+            + state
+        )
 
         new_filepath = (
-            new_dir + "\\" + name_frequencesplitfile + "_" + str(count) + "_" + state + "_all.txt"
+            new_dir
+            + "\\"
+            + name_frequencesplitfile
+            + "_"
+            + str(count)
+            + "_"
+            + state
+            + "_all.txt"
         )
         create_file(filepath=new_filepath, data=split_data, label=label)
 
         for split_split_data in cyclic_split(
             split_data, cycle_num=freq_num
         ):  # 周波数でさらに分割
-
             freq = split_split_data[0][f_index]
 
             freq = from_num_to_10Exx(freq, significant_digits=3)

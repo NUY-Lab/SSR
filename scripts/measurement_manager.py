@@ -11,9 +11,13 @@ from logging import getLogger
 from typing import Optional, Union
 
 import calibration as calib
-from measurement_manager_support import (CommandReceiver, FileManager,
-                                         MeasurementState, MeasurementStep,
-                                         PlotAgency)
+from measurement_manager_support import (
+    CommandReceiver,
+    FileManager,
+    MeasurementState,
+    MeasurementStep,
+    PlotAgency,
+)
 from variables import USER_VARIABLES
 
 logger = getLogger(__name__)
@@ -32,24 +36,22 @@ def finish() -> None:
     _measurement_manager.is_measuring = False
 
 
-def set_file_name(filename: str,add_date: bool = True) -> None:
-    """
-    ファイル名をセット
+def set_file_name(filename: str, add_date: bool = True) -> None:
+    """ファイル名をセット
 
     Parameter
-    -----------
+    ---------
     filename : str
         ファイル名
     add_date : bool
         ファイル名の先頭に日付をつけるかどうか
-
     """
-    _measurement_manager.file_manager.set_filename(filename,add_date)
+    _measurement_manager.file_manager.set_filename(filename, add_date)
 
 
 def set_calibration(filepath_calib: Optional[str] = None) -> None:
-    """
-    この関数は非推奨です。calibration.pyを作ったのでそちらをから呼んでください
+    """この関数は非推奨です。calibration.pyを作ったのでそちらをから呼んでください
+
     プラチナ温度計の抵抗値を温度に変換するためのファイルを読み込み
     """
     global calibration_manager
@@ -61,8 +63,8 @@ def set_calibration(filepath_calib: Optional[str] = None) -> None:
 
 
 def calibration(x: float) -> float:
-    """
-    この関数は非推奨です。calibration.pyを作ったのでそちらをから呼んでください
+    """この関数は非推奨です。calibration.pyを作ったのでそちらをから呼んでください
+
     プラチナ温度計の抵抗値xに対応する温度yを線形補間で返す
     """
     return calibration_manager.calibration(x)
@@ -72,7 +74,7 @@ def set_label(label: str) -> None:
     """ラベルをファイルに書き込み"""
     if _measurement_manager.state.current_step != MeasurementStep.START:
         logger.warning(sys._getframe().f_code.co_name + "はstart関数内で用いてください")
-    _measurement_manager.file_manager.write(label+"\n")
+    _measurement_manager.file_manager.write(label + "\n")
 
 
 def write_file(text: str) -> None:
@@ -83,12 +85,12 @@ def write_file(text: str) -> None:
 def set_plot_info(
     line=False, xlog=False, ylog=False, renew_interval=1, legend=False, flowwidth=0
 ) -> None:  # プロット情報の入力
-    """
-    グラフ描画プロセスに渡す値はここで設定する.
+    """グラフ描画プロセスに渡す値はここで設定する.
+
     __plot_infoが辞書型なのはアンパックして引数に渡すため
 
     Parameter
-    __________________________
+    ---------
 
     line: bool
         プロットに線を引くかどうか
@@ -104,7 +106,6 @@ def set_plot_info(
 
     flowwidth : float (>0)
         これが0より大きい値のとき. グラフの横軸は固定され､横にプロットが流れるようなグラフになる.
-
     """
 
     if _measurement_manager.state.current_step != MeasurementStep.START:
@@ -118,15 +119,16 @@ def set_plot_info(
         flowwidth=flowwidth,
     )
 
+
 def dont_make_file():
-    """
-    ファイルを作成しないときはこれを呼ぶ
+    """ファイルを作成しないときはこれを呼ぶ
+
     これを呼んだあとにファイル操作系の関数を呼ぶとエラーを吐く
     """
     if _measurement_manager.state.current_step != MeasurementStep.START:
         logger.warning(sys._getframe().f_code.co_name + "はstart関数内で用いてください")
     _measurement_manager.dont_make_file()
-    
+
 
 def save_data(*data: Union[tuple, str]) -> None:
     """データのセーブ"""
@@ -135,18 +137,16 @@ def save_data(*data: Union[tuple, str]) -> None:
 
 
 def save(*data: Union[tuple, str]) -> None:  # データ保存
-    """
-    引数のデータをファイルに書き込む.
-    この関数が呼ばれるごとに書き込みの反映( __savefile.flush)をおこなっているので途中で測定が落ちてもそれまでのデータは残るようになっている.
+    """引数のデータをファイルに書き込む.
 
+    この関数が呼ばれるごとに書き込みの反映( __savefile.flush)をおこなっているので途中で測定が落ちてもそれまでのデータは残るようになっている.
     stringの引数にも対応しているので､測定のデータは測定マクロ側でstringで保持しておいて最後にまとめて書き込むことも可能.
 
     Parameter
-    __________________________
+    ---------
 
     data : tuple or string
         書き込むデータ
-
     """
     if not bool(
         _measurement_manager.state.current_step
@@ -168,14 +168,13 @@ def plot_data(x: float, y: float, label: str = "default") -> None:  # データ�
 
 
 def plot(x: float, y: float, label: str = "default") -> None:
-    """
-    データをグラフ描画プロセスに渡す.
+    """データをグラフ描画プロセスに渡す.
+
     labelが変わると色が変わる
     __share_listは測定プロセスとグラフ描画プロセスの橋渡しとなるリストでバッファーの役割をする
 
-
     Parameter
-    __________________________
+    ---------
 
     x,y : float
         プロットのx,y座標
@@ -183,7 +182,6 @@ def plot(x: float, y: float, label: str = "default") -> None:
     label : string or float
         プロットの識別ラベル.
         これが同じだと同じ色でプロットしたり､線を引き設定のときは線を引いたりする.
-
     """
 
     if _measurement_manager.state.current_step != MeasurementStep.UPDATE:
@@ -201,16 +199,14 @@ def no_plot() -> None:
 
 
 class MeasurementManager:
-    """
-    測定の管理、マクロの各関数の呼び出し
-    """
+    """測定の管理、マクロの各関数の呼び出し"""
 
     file_manager = None
     plot_agency = None
     command_receiver = None
     state = MeasurementState()
     is_measuring = False
-    _dont_make_file=False
+    _dont_make_file = False
 
     @classmethod
     def set_measurement_state(cls, state: MeasurementState):
@@ -228,10 +224,10 @@ class MeasurementManager:
         self.set_measurement_state(self.state)
 
     def measure_start(self) -> None:
-        """
-        測定のメインとなる関数. 測定マクロに書かれた各関数はMAIN.pyによってここに渡されて
-        ここでそれぞれの関数を適切なタイミングで呼んでいる
+        """測定のメインとなる関数.
 
+        測定マクロに書かれた各関数はMAIN.pyによってここに渡されて
+        ここでそれぞれの関数を適切なタイミングで呼んでいる
         """
         logger.debug("measurement start")
         self.state.current_step = MeasurementStep.READY
@@ -304,9 +300,7 @@ class MeasurementManager:
         self.end()
 
     def end(self):
-        """
-        終了処理. コンソールからの終了と､グラフウィンドウを閉じたときの終了の2つを実行できるようにスレッドを用いる
-        """
+        """終了処理. コンソールからの終了と､グラフウィンドウを閉じたときの終了の2つを実行できるようにスレッドを用いる"""
 
         def wait_enter():  # コンソール側の終了
             nonlocal endflag, windowclose  # nonlocalを使うとクロージャーになる
@@ -348,4 +342,4 @@ class MeasurementManager:
             time.sleep(0.05)
 
     def dont_make_file(self):
-        self._dont_make_file=True
+        self._dont_make_file = True

@@ -14,15 +14,14 @@ logger = getLogger(__name__)
 
 
 class LinkamT95Error(MyException):
-    """LinkamT95関係のえらー"""
+    """LinkamT95関係のエラー"""
 
 
 class LinkamT95SerialIO:
-    """
-    LinkamT95と直接通信を担当するクラス
+    """LinkamT95と直接通信を担当するクラス
 
     Attributes
-    -------------
+    ----------
     serial:
         serialモジュールにあるシリアル通信用のインスタンス
     """
@@ -30,11 +29,10 @@ class LinkamT95SerialIO:
     serial: Serial = None
 
     def connect(self, COMPORT: str) -> None:
-        """
-        シリアル接続
+        """シリアル接続
 
         Parameter
-        ----------
+        ---------
         COMPORT:
             シリアルポートのポート番号 (COM1 or COM2 or COM3 or ...)
             デバイスマネージャーやNIMAXから確認できる
@@ -64,11 +62,10 @@ class LinkamT95SerialIO:
             )
 
     def write(self, command: str) -> None:
-        """
-        シリアル通信で書き込み
+        """シリアル通信で書き込み
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         command:str
             コマンド
         """
@@ -77,16 +74,15 @@ class LinkamT95SerialIO:
         _ = self.ser.read_until(b"\r")  # 空の応答が返ってくるので捨てる
 
     def query(self, command: str) -> bytes:
-        """
-        シリアル通信で書き込み&読み取り
+        """シリアル通信で書き込み&読み取り
 
         Parameters
-        -----------
+        ----------
         command:str
             コマンド
 
         Returns
-        ------
+        -------
         ans : bytes
             機器からの返答をバイト列で返す
         """
@@ -96,16 +92,15 @@ class LinkamT95SerialIO:
 
 
 class LinkamT95IO:
-    """
-    外からLinkamT95を動かすために用意したクラス
+    """外からLinkamT95を動かすために用意したクラス
+
     主に入力値のvalidationを担当
     外のクラスからは具体的な入力コマンドを隠して関数だけを見せている
 
     Attributes
-    ---------------
+    ----------
     T95serial:
         LinkamT95と直接通信を行っているクラス
-
     """
 
     class State(Enum):  # 測定状態を表すenum
@@ -119,21 +114,20 @@ class LinkamT95IO:
     T95serial = LinkamT95SerialIO()
 
     def connect(self, COMPORT: str) -> None:
-        """
-        機器に接続
+        """機器に接続
 
         Parameters
-        -----------
+        ----------
         COMPORT:
             機器のシリアルポート番号
         """
         self.T95serial.connect(COMPORT)
 
     def set_limit_temperature(self, T: int) -> None:
-        """
-        目的温度設定
+        """目的温度設定
+
         Parameters
-        -----------
+        ----------
         T:int
             目的温度
         """
@@ -144,10 +138,10 @@ class LinkamT95IO:
             raise LinkamT95Error("設定温度は-196~600℃にしてください")
 
     def set_rate(self, temp_per_min: int) -> None:
-        """
-        昇温降温速度設定
+        """昇温降温速度設定
+
         Parameters
-        -----------
+        ----------
         temp_per_min:int
             1分間に何度変化させるか
         """
@@ -158,11 +152,10 @@ class LinkamT95IO:
             raise LinkamT95Error("昇温・降温速度は0~150℃にしてください")
 
     def set_lnp_speed(self, lnp_speed: int) -> None:
-        """
-        窒素ガス速度設定
+        """窒素ガス速度設定
 
         Parameters
-        -----------
+        ----------
         lnp_speed:int
             ガス速度(0～100で設定)(autoは-1)
             (注)シリアル通信でのガス速度入力はタッチパッドと違って0～30での30段階入力のため、
@@ -182,40 +175,31 @@ class LinkamT95IO:
             raise LinkamT95Error("lnp_speedにわたす値は100以下である必要があります")
 
     def start(self) -> None:
-        """
-        温度変化スタート
-        """
+        """温度変化スタート"""
         self.T95serial.write("S")
 
     def stop(self) -> None:
-        """
-        停止
-        """
+        """停止"""
         self.T95serial.write("E")
 
     def heat(self) -> None:
-        """
-        昇温
-        """
+        """昇温"""
         self.T95serial.write("H")
 
     def cool(self) -> None:
-        """
-        降温
-        """
+        """降温"""
         self.T95serial.write("C")
 
     def hold(self) -> None:
-        """
-        温度キープ
-        """
+        """温度キープ"""
         self.T95serial.write("H")
 
     def read_status(self) -> Tuple[State, float, int]:
-        """
-        LinkamT95に信号を送信し、返り値として測定状態の情報を受け取る
+        """LinkamT95に信号を送信し、返り値として測定状態の情報を受け取る
 
-        Returns : Tuple[State,int,nt]
+        Returns
+        -------
+        Tuple[State,int,nt]
             (実行状態(詳しくはStateを参照) , 温度 , 窒素ガス速度(0~100))
         """
         ans = self.T95serial.query("T")
@@ -230,16 +214,16 @@ class LinkamT95IO:
         return state, temperature, pump_speed
 
     def _read_statusbyte(self, bytedata: bytes) -> State:
-        """
-        バイト列から測定状態を読み取る
+        """バイト列から測定状態を読み取る
+
         Parameter
         ---------
         bytedata:
             測定状態を含むbyte型のデータ
 
-        Returns :
+        Returns
+        -------
             実行状態(昇温or降温or維持など)
-
         """
         # 詳しくはマニュアル参照
         stringdata = hex(bytedata)
@@ -261,10 +245,10 @@ class LinkamT95IO:
         return state
 
     def _check_Error(self, errorcode: int) -> None:
-        """
-        エラー情報をバイト列から読み取ってエラーがあれば警告
+        """エラー情報をバイト列から読み取ってエラーがあれば警告
+
         Parameter
-        ----------
+        ---------
         bytedata:
             エラー情報を含むbyte型のデータ
         """
@@ -292,10 +276,10 @@ class LinkamT95IO:
         # if (errorcode & 0b10000000) !=0: これは常にTrue
 
     def _read_pump_statusbyte(self, intdata: int) -> int:
-        """
-        窒素ガス速度を読む
-        Parameters:
-        ------------
+        """窒素ガス速度を読む
+
+        Parameters
+        ----------
         intdata:int
             窒素ガス速度の情報を持つデータ
         """
