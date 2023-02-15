@@ -10,4 +10,4 @@ set /p __=
 exit /b
 )
 echo on
-pipenv run split
+py -m pipenv run split
