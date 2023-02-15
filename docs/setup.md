@@ -4,7 +4,7 @@
 
 - NIVISA (NIVISA1400) (runtimeで良い?)
 - NI-488.2 (NI4882_1760f0) (runtimeで良い)
-- Python
+- Python >= 3.9
 
 ## NIVISAの設定
 
@@ -24,6 +24,9 @@
 
 1. Microsoft Storeまたは[公式サイト](https://www.python.org/)などからPythonをインストール
 2. `python -m pip install pipenv`または`py -m pip install pipenv`を実行してPipenvをインストール
-3. プロジェクトルートに移動して`pipenv install`を実行
+   - Pythonが見つからない等のPath関連のエラーは再起動すると解決する可能性
+3. プロジェクトルートに移動して`pipenv sync`を実行
+   - 開発用のパッケージをインストールする場合には`--dev`フラグをつける
+   - Pythonのバージョンが古い場合にはパッケージのインストール中にエラーが起きるのでその場合はPythonのバージョンを上げてください
 
 Pipenvでは自動で仮想環境が作られ、そこにライブラリがインストールされる。仮想環境に入るには`pipenv shell`を実行すればよく、抜ける場合には`exit`を実行すればよい。
