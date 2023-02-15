@@ -71,7 +71,7 @@ class FileManager:  # ファイルの管理
     class FileError(MyException):
         """ファイル関連のエラー"""
 
-    _filepath: str
+    _filepath: Path
     _filename: str
     _file = None
     __prewrite: str = ""
@@ -79,6 +79,12 @@ class FileManager:  # ファイルの管理
     _datadir: Path
 
     def __init__(self, datadir: Path) -> None:
+        """
+        Parameters
+        -------------
+        datadir: Path
+            ファイルを置くディレクトリのパス
+        """
         self.set_filename("")
         if not datadir.is_dir():  # フォルダの存在確認
             raise self.FileError(str(datadir) + "のフォルダにアクセスしようとしましたが､存在しませんでした")
@@ -109,11 +115,11 @@ class FileManager:  # ファイルの管理
         self.check_has_file_ng_word(new_filename)  # ファイル名に使えない文字がないかチェック
         pyperclip.copy(new_filename)  # ファイル名をコピーしておく
         if add_date:
-            self._filename = self.get_date_text() + "_" + new_filename + ".txt"
+            self._filename = self._get_date_text() + "_" + new_filename + ".txt"
         else:
             self._filename = new_filename + ".txt"
 
-    def get_date_text(self) -> str:
+    def _get_date_text(self) -> str:
         """
         今日の日時を返す
         """
