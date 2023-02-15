@@ -9,18 +9,14 @@ split = "python scripts/MAIN.py SPLIT"
 recalc = "python scripts/MAIN.py RECALCULATE"
 
 [packages]
-scipy = ">=1.10.0"
-chardet = ">=5.1.0"
-matplotlib = ">=3.6.3"
-pywin32 = ">=305"
-pyvisa = ">=1.13.0"
-pyserial = ">=3.5"
-pyperclip = ">=1.8.2"
+scipy = "==1.10.0"
+chardet = "==5.1.0"
+matplotlib = "==3.6.3"
+pywin32 = "==305"
+pyvisa = "==1.13.0"
+pyserial = "==3.5"
+pyperclip = "==1.8.2"
 
 [dev-packages]
 black = ">=23.1.0"
 isort = ">=5.12.0"
-
-[requires]
-python_version = "3.11"
-python_full_version = "3.11.0"
