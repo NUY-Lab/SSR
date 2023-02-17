@@ -5,7 +5,6 @@ __pycache__/
 # SSR
 /example/
 temp/
-/test/
 /log/
 /shared_settings/
 /sample/data/*.*

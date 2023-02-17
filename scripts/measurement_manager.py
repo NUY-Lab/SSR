@@ -321,7 +321,7 @@ class MeasurementManager:
         windowclose = False
 
         thread1 = threading.Thread(target=wait_closewindow)
-        thread1.setDaemon(True)
+        thread1.daemon = True
         thread1.start()
 
         time.sleep(0.1)
@@ -331,7 +331,7 @@ class MeasurementManager:
         )
 
         thread2 = threading.Thread(target=wait_enter)
-        thread2.setDaemon(True)
+        thread2.daemon = True
         thread2.start()
 
         while True:

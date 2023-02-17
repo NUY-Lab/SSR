@@ -15,7 +15,6 @@ from typing import List, Optional, Union
 import plot
 import pyperclip
 from utility import MyException
-from variables import USER_VARIABLES
 
 logger = getLogger(__name__)
 
@@ -234,7 +233,7 @@ class CommandReceiver:  # コマンドの入力を受け取るクラス
         別スレッドで__command_receive_threadを実行
         """
         cmthr = threading.Thread(target=self.__command_receive_thread)
-        cmthr.setDaemon(True)
+        cmthr.daemon = True
         cmthr.start()
 
     def __command_receive_thread(self) -> None:  # 終了コマンドの入力待ち, これは別スレッドで動かす

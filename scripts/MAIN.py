@@ -27,7 +27,7 @@ from log import set_user_log, setlog
 logger = getLogger(__name__)
 
 
-def main() -> None:
+def meas() -> None:
     """
     測定マクロを動かすための準備をするスクリプト
 
@@ -104,7 +104,7 @@ def on_forced_termination(func: Callable[[None], None]) -> None:
 
 
 # 分割関数だけを呼び出し
-def split_only() -> None:
+def split() -> None:
     print("分割マクロ選択...")
     macroPath = ask_open_filename(
         filetypes=[("pythonファイル", "*.py *.SSR")], title="分割マクロを選択してください"
@@ -117,7 +117,7 @@ def split_only() -> None:
         return None
 
     try:
-        import GPIB
+        import ExternalControl.GPIB.GPIB as GPIB
 
         # GPIBモジュールの関数を書き換えてGPIBがつながって無くてもエラーが出ないようにする
         GPIB.get_instrument = noop
@@ -140,7 +140,7 @@ def split_only() -> None:
     input()
 
 
-def recalculate_only() -> None:
+def recalculate() -> None:
     print("再計算マクロ選択...")
     macroPath = ask_open_filename(
         filetypes=[("pythonファイル", "*.py *.SSR")], title="再計算マクロを選択してください"
@@ -176,7 +176,7 @@ def setting() -> None:
     setlog()
 
 
-if __name__ == "__main__":
+def main() -> None:
     setting()
 
     mode: str = ""
@@ -193,11 +193,11 @@ if __name__ == "__main__":
     # 処理を開始
     try:
         if mode == "MEAS":
-            main()
+            meas()
         elif mode == "SPLIT":
-            split_only()
+            split()
         elif mode == "RECALCULATE":
-            recalculate_only()
+            recalculate()
     # エラーは全てここでキャッチ
     except MyException as e:
         print("*****************Error*****************")
@@ -211,3 +211,7 @@ if __name__ == "__main__":
         logger.exception("")
         # コンソールウィンドウが落ちないように入力待ちを入れる
         input("*****************Error*****************")
+
+
+if __name__ == "__main__":
+    main()

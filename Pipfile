@@ -7,6 +7,7 @@ name = "pypi"
 meas = "python scripts/MAIN.py MEAS"
 split = "python scripts/MAIN.py SPLIT"
 recalc = "python scripts/MAIN.py RECALCULATE"
+test = "pytest ./test"
 
 [packages]
 scipy = "==1.10.0"
@@ -20,3 +21,4 @@ pyperclip = "==1.8.2"
 [dev-packages]
 black = ">=23.1.0"
 isort = ">=5.12.0"
+pytest = ">=7.2.1"
