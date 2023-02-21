@@ -14,12 +14,6 @@
 
 """
 
-ADRESS_Keithley_center=11 # ステージ中央の白金抵抗を測るKeithley2000のGPIB番号
-ADRESS_Keithley_beside=12 # ステージ端の白金抵抗を測るKeithley2000のGPIB番号
-IS_4RES_CENTER=False #ステージ中央の白金抵抗を4端子法で測定するか (Falseなら2端子法)
-
-CALIBRATION_FILE_CENTER_Pt="JPT100JIS.dat" #ステージ中央の白金抵抗の温度変換表
-CALIBRATION_FILE_BESIDE_Pt="JPT100JIS.dat" #ステージ端の白金抵抗の温度変換表
 
 import datetime
 import math
@@ -28,8 +22,9 @@ import time
 
 import numpy as np
 from basedata import BaseData
-from ExternalControl.GPIB.GPIB import \
-    GPIBController  # GPIBで接続する機器につながる# inst=GPIBController() でインスタンス作成 # inst.connect(<GPIBアドレス>)で接続 # inst.write(<コマンド>)でコマンド送信 # answer = inst.query(<コマンド>)でコマンド送信&読み取り
+from ExternalControl.GPIB.GPIB import (
+    GPIBController,  # GPIBで接続する機器につながる# inst=GPIBController() でインスタンス作成 # inst.connect(<GPIBアドレス>)で接続 # inst.write(<コマンド>)でコマンド送信 # answer = inst.query(<コマンド>)でコマンド送信&読み取り
+)
 from measurement_manager import plot  # ウィンドウに点をプロット 引数は float,float
 from measurement_manager import save  # ファイルに保存 引数はtuple
 from measurement_manager import set_file_name  # ファイル名設定 引数は string
@@ -54,6 +49,13 @@ class Data(BaseData):
 Keithley_center=GPIBController()
 Keithley_beside=GPIBController()
 
+ADRESS_Keithley_center:int # ステージ中央の白金抵抗を測るKeithley2000のGPIB番号
+ADRESS_Keithley_beside:int # ステージ端の白金抵抗を測るKeithley2000のGPIB番号
+
+
+CALIBRATION_FILE_CENTER_Pt="JPT100JIS.dat" #ステージ中央の白金抵抗の温度変換表
+CALIBRATION_FILE_BESIDE_Pt="JPT100JIS.dat" #ステージ端の白金抵抗の温度変換表
+
 #白金抵抗の抵抗値を温度に変換する関数
 interpolate_data=np.loadtxt(fname=CALIBRATION_FILE_CENTER_Pt,delimiter="\t",unpack=True,skiprows=1)
 interpolate_func_center=interp1d(interpolate_data[1],interpolate_data[0],bounds_error=False,fill_value="extrapolate")
@@ -62,8 +64,13 @@ interpolate_data=np.loadtxt(fname=CALIBRATION_FILE_BESIDE_Pt,delimiter="\t",unpa
 interpolate_func_beside=interp1d(interpolate_data[1],interpolate_data[0],bounds_error=False,fill_value="extrapolate")
 
 
+
+
 def start():#最初に1回だけ実行される処理
 
+
+    ADRESS_Keithley_beside=int(input("ステージの端の白金抵抗に接続するKeithleyの番号>"))
+    ADRESS_Keithley_center=int(input("ステージ中央の白金抵抗に接続するKeithleyの番号>"))
 
     #機器に接続
 
@@ -75,14 +82,14 @@ def start():#最初に1回だけ実行される処理
 
     
     
-    set_label(Data.to_label()) # ファイル先頭にラベルを付けておく
+    set_label(Data.to_label()+f"ステージの端の白金抵抗に接続するKeithleyの番号:{ADRESS_Keithley_beside}, ステージ中央の白金抵抗に接続するKeithleyの番号:{ADRESS_Keithley_center}") # ファイル先頭にラベルを付けておく
     set_plot_info(line=False,xlog=False,ylog=False,renew_interval=1,flowwidth=0,legend=False) #プロット条件指定
     
 
 
     #Keithley2000の初期設定
     Keithley_beside.write("SENS:FUNC 'FRES'") #四端子抵抗測定
-    Keithley_center.write("SENS:FUNC 'FRES'" if IS_4RES_CENTER   else "SENS:FUNC 'RES'") # 四端子抵抗測定 or 二端子抵抗測定
+    Keithley_center.write("SENS:FUNC 'FRES'") # 四端子抵抗測定 or 二端子抵抗測定
 
 
 def update():#測定中に何度も実行される処理
