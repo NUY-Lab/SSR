@@ -49,9 +49,6 @@ class Data(BaseData):
 Keithley_center=GPIBController()
 Keithley_beside=GPIBController()
 
-ADRESS_Keithley_center:int # ステージ中央の白金抵抗を測るKeithley2000のGPIB番号
-ADRESS_Keithley_beside:int # ステージ端の白金抵抗を測るKeithley2000のGPIB番号
-
 
 CALIBRATION_FILE_CENTER_Pt="JPT100JIS.dat" #ステージ中央の白金抵抗の温度変換表
 CALIBRATION_FILE_BESIDE_Pt="JPT100JIS.dat" #ステージ端の白金抵抗の温度変換表
@@ -69,8 +66,8 @@ interpolate_func_beside=interp1d(interpolate_data[1],interpolate_data[0],bounds_
 def start():#最初に1回だけ実行される処理
 
 
-    ADRESS_Keithley_beside=int(input("ステージの端の白金抵抗に接続するKeithleyの番号>"))
-    ADRESS_Keithley_center=int(input("ステージ中央の白金抵抗に接続するKeithleyの番号>"))
+    ADRESS_Keithley_beside=int(input("ステージの端の白金抵抗に接続するKeithleyの番号>")) # ステージ中央の白金抵抗を測るKeithley2000のGPIB番号
+    ADRESS_Keithley_center=int(input("ステージ中央の白金抵抗に接続するKeithleyの番号>")) # ステージ端の白金抵抗を測るKeithley2000のGPIB番号
 
     #機器に接続
 
