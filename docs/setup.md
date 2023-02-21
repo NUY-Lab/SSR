@@ -25,7 +25,8 @@
 1. Microsoft Storeまたは[公式サイト](https://www.python.org/)などからPythonをインストール
 2. `python -m pip install pipenv`または`py -m pip install pipenv`を実行してPipenvをインストール
    - Pythonが見つからない等のPath関連のエラーは再起動すると解決する可能性
-3. プロジェクトルートに移動して`pipenv sync`を実行
+3. プロジェクトルートに移動して(わからなければSSR.exeのあるフォルダでSHIFTキーを押しながら右クリックして"PowerShellウィンドウでここを開く"を選択)
+   `pipenv sync`を実行
    - 開発用のパッケージをインストールする場合には`--dev`フラグをつける
    - Pythonのバージョンが古い場合にはパッケージのインストール中にエラーが起きるのでその場合はPythonのバージョンを上げてください
 
