@@ -10,4 +10,4 @@ set /p __=
 exit /b
 )
 echo on
-py -m pipenv run meas 2>>log/ConsoleError.log
+py -m pipenv run meas 
