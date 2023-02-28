@@ -14,6 +14,7 @@ from typing import List, Optional, Union
 
 import plot
 import pyperclip
+from basedata import BaseData
 from utility import MyException
 from variables import USER_VARIABLES
 
@@ -173,7 +174,7 @@ class FileManager:  # ファイルの管理
         text = ""
 
         for data in args:
-            if hasattr(data, "__iter__") or isinstance(data, tuple) or data is list:
+            if issubclass(type(data),BaseData) or isinstance(data, tuple) or data is list:
                 text += self.delimiter.join(map(str, data))
             else:
                 text += str(data)
