@@ -114,15 +114,15 @@ def get_data(): #実際に測定してる部分
 
 def split(filepath):
     
-    data=np.loadtxt(fname=filepath,delimiter=",",unpack=True,skiprows=1)
+    data=np.loadtxt(fname=filepath,delimiter=",",unpack=True,skiprows=1,encoding="utf-8")
 
     resistance_beside,temperature_center=zip(*sorted(zip(data[0],data[3]))) #ソートする
 
     #以下ではresistance_besideの間隔を一定にした上で平均化によってなめらかにする
     fitting_curve=interp1d(resistance_beside,temperature_center) 
 
-    min_res_beside=int(resistance_beside[0])
-    max_res_beside=int(resistance_beside[-1])
+    min_res_beside=math.ceil(resistance_beside[0])
+    max_res_beside=math.floor(resistance_beside[-1])
     new_resistance_beside=np.linspace(min_res_beside,max_res_beside,(max_res_beside-min_res_beside)*5)#新しい抵抗値のリスト
 
     new_temperature_center=smoothen(fitting_curve(new_resistance_beside),2)
@@ -130,13 +130,13 @@ def split(filepath):
     calib_file_path= os.path.dirname(filepath)+"/"+get_date_text()+"_calibration.dat"
 
     with open(calib_file_path,"x",encoding="utf-8",newline='\n') as f:
-        f.write("0:resistance_beside[Ohm], 1:temperature_center[K]\n")
+        f.write("0:temperature_center[K], 1:resistance_beside[Ohm]\n")
 
-        for R,T in zip(new_resistance_beside,new_temperature_center):
-            f.write(f"{T}\t{R}\n") #今までの校正ファイルと同じ順番で保存
+        for T,R in zip(new_temperature_center,new_resistance_beside):
+            f.write(f"{T},{R}\n") #今までの校正ファイルと同じ順番で保存
 
 
-    input(f"キャリブレーションファイルを{calib_file_path}に作成しました.\n{str(SHARED_VARIABLES.SETTINGDIR / 'calibration_file')}のファイルを新しいものに置き換えてください")
+    input(f"キャリブレーションファイルを{calib_file_path}に作成しました.\n{str(SHARED_VARIABLES.SETTINGDIR / 'calibration_file')}のファイルを新しいものに置き換えてください\nもし、測定データの一部の区間だけ(降温だけなど)を使用したいなら、一度手動で抽出してからSSR_splitでこのマクロを使ってキャリブレーションファイルを作成してください。")
     input("Enterを押すと終了します...")
 
     
@@ -171,8 +171,7 @@ def get_date_text() -> str:
     year = str(dt_now.year)
 
     datelabel = (
-        year[2]
-        + year[3]
+        year
         + str(dt_now.month).zfill(2)
         + str(dt_now.day).zfill(2)
     )
