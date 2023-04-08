@@ -18,6 +18,7 @@ from measurement_manager_support import (
     MeasurementStep,
     PlotAgency,
 )
+from utility import get_date_text
 from variables import USER_VARIABLES
 
 logger = getLogger(__name__)
@@ -36,7 +37,7 @@ def finish() -> None:
     _measurement_manager.is_measuring = False
 
 
-def set_file_name(filename: str, add_date: bool = True) -> None:
+def set_file(filename: str = None, add_date: bool = True):
     """ファイル名をセット
 
     Parameter
@@ -46,7 +47,21 @@ def set_file_name(filename: str, add_date: bool = True) -> None:
     add_date : bool
         ファイル名の先頭に日付をつけるかどうか
     """
-    _measurement_manager.file_manager.set_filename(filename, add_date)
+
+    if filename is not None and add_date:
+        filename=f"{filename}{get_date_text()}.txt"
+    
+    if filename is not None:
+        _measurement_manager.file_manager.set_file(filepath=f"{USER_VARIABLES.DATADIR}/{filename}")
+    else:
+        _measurement_manager.file_manager.set_file(filepath=None)
+
+def set_file_name(filename: str, add_date: bool = True) -> None:
+    logger.warning("関数set_file_nameは非推奨です。 set_fileを使ってください")
+    set_file(filename=filename,add_date=add_date)
+    
+    
+    
 
 
 def set_calibration(filepath_calib: Optional[str] = None) -> None:
@@ -218,7 +233,7 @@ class MeasurementManager:
 
     def __init__(self, macro) -> None:
         self.macro = macro
-        self.file_manager = FileManager(USER_VARIABLES.DATADIR)
+        self.file_manager = FileManager()
         self.plot_agency = PlotAgency()
         self.command_receiver = CommandReceiver(self.state)
         self.set_measurement_state(self.state)
@@ -237,13 +252,11 @@ class MeasurementManager:
 
         self.state.current_step = MeasurementStep.START
 
+
         if self.macro.start is not None:
             self.macro.start()
-
-        if not self._dont_make_file:
-            self.file_manager.create_file(
-                do_make_folder=(self.macro.split is not None),
-            )  # ファイル作成
+        if (not self._dont_make_file) and (self.file_manager.filepath is None):
+            self.file_manager.set_file(filepath=f"{USER_VARIABLES.DATADIR}/{get_date_text()}.txt")
 
         self.plot_agency.run_plot_window()  # グラフウィンドウの立ち上げ
 
