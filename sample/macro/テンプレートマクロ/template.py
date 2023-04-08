@@ -24,7 +24,7 @@ class Data(BaseData):
 
 def start():  # 最初に呼ばれる
 
-    set_file()
+    set_file() #ファイル作成
 
     #プロットする条件を指定、今回は点を線でつなぐように設定
     set_plot_info(line=True,xlog=False,ylog=False)

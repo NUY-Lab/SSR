@@ -105,7 +105,7 @@ class FileManager:  # ファイルの管理
 
     def set_file(self,filepath=None):
         if filepath is None:
-            self.__fileIO=FileManager.FileIO(filepath=ask_save_filename(filetypes=[("TEXT",".txt"),],defaultextension = "txt",initialdir=USER_VARIABLES.DATADIR,initialfile=get_date_text()))
+            self.__fileIO=FileManager.FileIO(filepath=ask_save_filename(filetypes=[("TEXT",".txt"),],defaultextension = "txt",initialdir=USER_VARIABLES.DATADIR,initialfile=get_date_text(),title="作成するファイル名を設定してください"))
         else:
             self.__fileIO=FileManager.FileIO(filepath=filepath)
 

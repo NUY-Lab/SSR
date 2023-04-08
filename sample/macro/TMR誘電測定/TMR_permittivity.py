@@ -12,6 +12,7 @@ from measurement_manager import finish  # 測定の終了 引数なし
 from measurement_manager import no_plot  # プロットしないときに使う
 from measurement_manager import plot  # ウィンドウに点をプロット 引数は float,float
 from measurement_manager import save  # ファイルに保存 引数はtuple
+from measurement_manager import set_file  # ファイル名をセットする 引数はstring 引数なしだとダイアログを出す
 from measurement_manager import set_label  # ファイルの先頭にラベル行をいれる
 from measurement_manager import set_plot_info  # プロット情報入力
 from measurement_manager import write_file  # ファイルへの書き込み引数は string
@@ -56,6 +57,8 @@ def start():#最初に1回だけ実行される処理
     LCR.connect(ADRESS_LCR)
     Keithley.connect(ADRESS_Keithley)
     #Linkam.connect(COMPORT_LinkamT95) #シリアルポートのついてないLinkamもあったのでこのコマンドはコメントアウトしました
+
+    set_file() #ファイル作成
 
     #電極面積, 試料の厚さを入力
     electrode_area=float(input("s is > ")) #電極面積入力
