@@ -1,15 +1,17 @@
 import time
 
 from basedata import BaseData  # 測定データの基本クラス
-from ExternalControl.GPIB.GPIB import \
-    GPIBController  # GPIBで接続する機器につながる# inst=GPIBController() でインスタンス作成 # inst.connect(<GPIBアドレス>)で接続 # inst.write(<コマンド>)でコマンド送信 # answer = inst.query(<コマンド>)でコマンド送信&読み取り
-from ExternalControl.LinkamT95.Controller import \
-    LinkamT95AutoController  # リンカムの操作 # inst=LinkamT95AutoController() でインスタンス作成 # inst.connect(<COMPORTアドレス>)で接続(COMPORTアドレスはデバイスマネージャーからわかる) # inst.add_sequence(<コマンド>)でコマンド送信 # answer = inst.query(<コマンド>)でコマンド送信&読み取り
+from ExternalControl.GPIB.GPIB import (
+    GPIBController,  # GPIBで接続する機器につながる# inst=GPIBController() でインスタンス作成 # inst.connect(<GPIBアドレス>)で接続 # inst.write(<コマンド>)でコマンド送信 # answer = inst.query(<コマンド>)でコマンド送信&読み取り
+)
+from ExternalControl.LinkamT95.Controller import (
+    LinkamT95AutoController,  # リンカムの操作 # inst=LinkamT95AutoController() でインスタンス作成 # inst.connect(<COMPORTアドレス>)で接続(COMPORTアドレスはデバイスマネージャーからわかる) # inst.add_sequence(<コマンド>)でコマンド送信 # answer = inst.query(<コマンド>)でコマンド送信&読み取り
+)
 from measurement_manager import finish  # 測定の終了 引数なし
 from measurement_manager import no_plot  # プロットしないときに使う
 from measurement_manager import plot  # ウィンドウに点をプロット 引数は float,float
 from measurement_manager import save  # ファイルに保存 引数はtuple
-from measurement_manager import set_file_name  # ファイル名設定 引数は string
+from measurement_manager import set_file  # ファイル名をセットする 引数はstring 引数なしだとダイアログを出す
 from measurement_manager import set_label  # ファイルの先頭にラベル行をいれる
 from measurement_manager import set_plot_info  # プロット情報入力
 from measurement_manager import write_file  # ファイルへの書き込み引数は string
@@ -22,8 +24,7 @@ class Data(BaseData):
 
 def start():  # 最初に呼ばれる
 
-    #ファイル名は 日付+ここに入力したテキスト になる
-    set_file_name("テスト用ファイル")
+    set_file() #ファイル作成
 
     #プロットする条件を指定、今回は点を線でつなぐように設定
     set_plot_info(line=True,xlog=False,ylog=False)

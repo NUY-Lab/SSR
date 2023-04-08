@@ -27,7 +27,6 @@ from ExternalControl.GPIB.GPIB import (
 )
 from measurement_manager import plot  # ウィンドウに点をプロット 引数は float,float
 from measurement_manager import save  # ファイルに保存 引数はtuple
-from measurement_manager import set_file_name  # ファイル名設定 引数は string
 from measurement_manager import set_label  # ファイルの先頭にラベル行をいれる
 from measurement_manager import set_plot_info  # プロット情報入力
 from scipy.interpolate import interp1d
@@ -73,8 +72,6 @@ def start():#最初に1回だけ実行される処理
 
     Keithley_center.connect(ADRESS_Keithley_center)
     Keithley_beside.connect(ADRESS_Keithley_beside)
-
-    set_file_name("calibration_all")
 
 
     

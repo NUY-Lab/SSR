@@ -2,8 +2,7 @@ import time
 from functools import cache
 
 from ExternalControl.GPIB.GPIB import GPIBError, get_instrument
-from measurement_manager import (finish, no_plot, plot, save, set_file_name,
-                                 set_plot_info, write_file)
+from measurement_manager import finish, no_plot, plot, save, set_plot_info, write_file
 
 
 def start():

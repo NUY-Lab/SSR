@@ -2,8 +2,9 @@
 measurement_managerモジュールで利用するクラスの詰め合わせ
 """
 
-import datetime
+
 import msvcrt
+import os
 import threading
 import time
 from enum import Flag, auto
@@ -15,7 +16,7 @@ from typing import List, Optional, Union
 import plot
 import pyperclip
 from basedata import BaseData
-from utility import MyException
+from utility import MyException, ask_save_filename, get_date_text
 from variables import USER_VARIABLES
 
 logger = getLogger(__name__)
@@ -53,6 +54,11 @@ class MeasurementState:
         return bool(self.current_step & MeasurementStep.MEASURING)
 
 
+
+
+
+
+
 class FileManager:  # ファイルの管理
     """ファイルの作成・書き込みを行う
 
@@ -61,10 +67,6 @@ class FileManager:  # ファイルの管理
 
     filepath:str
         書き込んだファイルのパス
-    filename:str
-        ファイル名
-    file
-        ファイルのインスタンス
     delimiter:str
         区切り文字
     """
@@ -72,101 +74,46 @@ class FileManager:  # ファイルの管理
     class FileError(MyException):
         """ファイル関連のエラー"""
 
-    _filepath: Path
-    _filename: str
-    _file = None
+    class FileIO:
+        """実際にファイルに書き込みをする部分"""
+        __filepath=None
+        def __init__(self,filepath) -> None:
+            self.__filepath=filepath
+            self.__file = open(filepath,"x",encoding="utf-8")
+
+        def write(self,text) -> None:
+            self.__file.write(text)
+            self.__file.flush()
+
+        def close(self):
+            self.__file.close()
+            self.__file=None
+
+        @property
+        def filepath(self) -> str:
+            """ファイルのパス"""
+            return self.__filepath
+
     __prewrite: str = ""
     delimiter: str = ","
-    _datadir: Path
-
-    def __init__(self, datadir: Path) -> None:
-        """
-        Parameters
-        -------------
-        datadir: Path
-            ファイルを置くディレクトリのパス
-        """
-        self.set_filename("")
-        if not datadir.is_dir():  # フォルダの存在確認
-            raise self.FileError(str(datadir) + "のフォルダにアクセスしようとしましたが､存在しませんでした")
-        else:
-            self._datadir = datadir
+    __fileIO:FileIO =None  
 
     @property
     def filepath(self) -> str:
         """ファイルのパス"""
-        return self._filepath
+        return self.__fileIO.filepath if self.__fileIO is not None else None
 
-    @property
-    def filename(self) -> str:
-        """ファイルの名前"""
-        return self._filename
-
-    def set_filename(self, new_filename: str, add_date: bool = True):
-        """ファイル名を設定する際に使えない文字がないが入っていないか判定
-
-        Attributes
-
-        new_filename :str
-            ファイル名
-
-        add_date : bool
-            ファイル名の前に日付をつけるかどうか
-        """
-        self.check_has_file_ng_word(new_filename)  # ファイル名に使えない文字がないかチェック
-        pyperclip.copy(new_filename)  # ファイル名をコピーしておく
-        if add_date:
-            self._filename = self._get_date_text() + "_" + new_filename + ".txt"
+    def set_file(self,filepath=None):
+        if filepath is None:
+            self.__fileIO=FileManager.FileIO(filepath=ask_save_filename(filetypes=[("TEXT",".txt"),],defaultextension = "txt",initialdir=USER_VARIABLES.DATADIR,initialfile=get_date_text(),title="作成するファイル名を設定してください"))
         else:
-            self._filename = new_filename + ".txt"
+            self.__fileIO=FileManager.FileIO(filepath=filepath)
 
-    def _get_date_text(self) -> str:
-        """
-        今日の日時を返す
-        """
+        if self.__prewrite!="":
+            self.__fileIO.write(self.__prewrite)
 
-        dt_now = datetime.datetime.now()  # 日時取得
+        pyperclip.copy(os.path.basename(self.__fileIO.filepath)) #ファイル名はクリップボードにコピーしておく
 
-        # 日時をゼロ埋めしたりしてからファイル名の先頭につける
-        year = str(dt_now.year)
-
-        datelabel = (
-            year[2]
-            + year[3]
-            + str(dt_now.month).zfill(2)
-            + str(dt_now.day).zfill(2)
-            + "-"
-            + str(dt_now.hour).zfill(2)
-            + str(dt_now.minute).zfill(2)
-            + str(dt_now.second).zfill(2)
-        )
-        return datelabel
-
-    def create_file(self, do_make_folder: bool = False) -> None:
-        """新規でファイルを作り､__savefileに代入
-
-        Attributes
-        ----------
-
-        do_make_folder:bool
-            フォルダを作るかどうか
-        """
-
-        if do_make_folder:
-            nowdatadir = self._datadir / self._filename.replace(".txt", "")
-            nowdatadir.mkdir()
-            self._filepath = nowdatadir / self._filename
-        else:
-            self._filepath = self._datadir / self._filename
-
-        self._file = self._filepath.open(mode="x", encoding="utf-8")  # ファイル作成
-
-        logger.info("filename:%s", self.filename)
-
-        if self.__prewrite != "":
-            self._file.write(self.__prewrite)  # 今までに書き込んだ分を入力
-            self._file.flush()
-            self.__prewrite = ""
 
     def save(self, *args: Union[tuple, str]) -> None:
         """データ保存"""
@@ -180,33 +127,23 @@ class FileManager:  # ファイルの管理
                 text += str(data)
             text += self.delimiter
         text = text[0:-1] + "\n"
-        self.write(text)
+        self.__fileIO.write(text)
 
     def write(self, text: str) -> None:
         """ファイルへの書き込み
 
         ファイルがまだ作成されていなければ別の場所に一次保存
         """
-        if self._file is None:
+        if self.__fileIO is None:
             self.__prewrite += text
         else:
-            self._file.write(text)
-            self._file.flush()
-
-    def check_has_file_ng_word(self, text: str) -> bool:
-        """
-        ファイルに使えない文字がないか確認
-        """
-        ngwords = ["\\", "/", "?", '"', "<", ">", "|", ":", "*"]  # ファイルに使えない文字
-        for ng in ngwords:
-            if ng in text:
-                raise self.FileError(
-                    f"以下の文字列はファイル名に使えません. 入力し直してください \n{' '.join(ngwords)} "
-                )
+            self.__fileIO.write(text)
 
     def close(self) -> None:
         """ファイルを閉じる"""
-        self._file.close()
+        self.__fileIO.close()
+
+    
 
 
 class CommandReceiver:  # コマンドの入力を受け取るクラス
