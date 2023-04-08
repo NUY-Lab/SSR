@@ -2,15 +2,16 @@ import time
 
 from basedata import BaseData
 from calibration import TMRCalibrationManager
-from ExternalControl.GPIB.GPIB import \
-    GPIBController  # GPIBで接続する機器につながる# inst=GPIBController() でインスタンス作成 # inst.connect(<GPIBアドレス>)で接続 # inst.write(<コマンド>)でコマンド送信 # answer = inst.query(<コマンド>)でコマンド送信&読み取り
-from ExternalControl.LinkamT95.Controller import \
-    LinkamT95AutoController  # リンカムの操作 # inst=LinkamT95AutoController() でインスタンス作成 # inst.connect(<COMPORTアドレス>)で接続(COMPORTアドレスはデバイスマネージャーからわかる) # inst.add_sequence(<コマンド>)でコマンド送信 # answer = inst.query(<コマンド>)でコマンド送信&読み取り
+from ExternalControl.GPIB.GPIB import (
+    GPIBController,  # GPIBで接続する機器につながる# inst=GPIBController() でインスタンス作成 # inst.connect(<GPIBアドレス>)で接続 # inst.write(<コマンド>)でコマンド送信 # answer = inst.query(<コマンド>)でコマンド送信&読み取り
+)
+from ExternalControl.LinkamT95.Controller import (
+    LinkamT95AutoController,  # リンカムの操作 # inst=LinkamT95AutoController() でインスタンス作成 # inst.connect(<COMPORTアドレス>)で接続(COMPORTアドレスはデバイスマネージャーからわかる) # inst.add_sequence(<コマンド>)でコマンド送信 # answer = inst.query(<コマンド>)でコマンド送信&読み取り
+)
 from measurement_manager import finish  # 測定の終了 引数なし
 from measurement_manager import no_plot  # プロットしないときに使う
 from measurement_manager import plot  # ウィンドウに点をプロット 引数は float,float
 from measurement_manager import save  # ファイルに保存 引数はtuple
-from measurement_manager import set_file_name  # ファイル名設定 引数は string
 from measurement_manager import set_label  # ファイルの先頭にラベル行をいれる
 from measurement_manager import set_plot_info  # プロット情報入力
 from measurement_manager import write_file  # ファイルへの書き込み引数は string
@@ -55,10 +56,6 @@ def start():#最初に1回だけ実行される処理
     LCR.connect(ADRESS_LCR)
     Keithley.connect(ADRESS_Keithley)
     #Linkam.connect(COMPORT_LinkamT95) #シリアルポートのついてないLinkamもあったのでこのコマンドはコメントアウトしました
-
-    filename=input("filename is >") #ファイル名の入力
-    set_file_name(filename)
-
 
     #電極面積, 試料の厚さを入力
     electrode_area=float(input("s is > ")) #電極面積入力
