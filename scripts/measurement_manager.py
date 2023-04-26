@@ -244,7 +244,7 @@ class MeasurementManager:
         測定マクロに書かれた各関数はMAIN.pyによってここに渡されて
         ここでそれぞれの関数を適切なタイミングで呼んでいる
         """
-        logger.debug("measurement start")
+        
         self.state.current_step = MeasurementStep.READY
 
         while msvcrt.kbhit():  # 既に入っている入力は消す
@@ -258,6 +258,7 @@ class MeasurementManager:
         if (not self._dont_make_file) and (self.file_manager.filepath is None):
             self.file_manager.set_file(filepath=f"{USER_VARIABLES.DATADIR}/{get_date_text()}.txt")
 
+        logger.info(f"file: {self.file_manager.filepath.name}")
         self.plot_agency.run_plot_window()  # グラフウィンドウの立ち上げ
 
         while msvcrt.kbhit():  # 既に入っている入力は消す
@@ -266,7 +267,7 @@ class MeasurementManager:
         if self.macro.on_command is not None:
             self.command_receiver.initialize()
 
-        print("measuring start...")
+        logger.info("measurement start")
         self.state.current_step = MeasurementStep.UPDATE
 
         self.is_measuring = True
@@ -292,8 +293,7 @@ class MeasurementManager:
         while msvcrt.kbhit():  # 既に入っている入力は消す
             msvcrt.getwch()
 
-        print("measurement has finished...")
-
+        logger.info("measurement has finished...")
         if self.macro.end is not None:
             self.state.current_step = MeasurementStep.END
             self.macro.end()
