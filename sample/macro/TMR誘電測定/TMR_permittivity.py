@@ -1,4 +1,6 @@
+import statistics
 import time
+from collections import deque
 
 from basedata import BaseData
 from calibration import TMRCalibrationManager
@@ -29,6 +31,7 @@ class Data(BaseData):
     permittivity_image:""
     tan_delta:""
     resistance_Pt:"[Ohm]"
+    step:""
 
 
 electrode_area:float #電極面積
@@ -88,6 +91,7 @@ def start():#最初に1回だけ実行される処理
 
 def update():#測定中に何度も実行される処理
     data=get_data()#データ取得
+    check_step(data)
     if data.time>5*60*60: #5時間経ったら勝手に終了するように
         return False
     save(data)#セーブ
@@ -126,6 +130,24 @@ def get_data(): #実際に測定してる部分
 
 
 def split(filepath):#測定ファイルを周波数分割
-    TMR_split(filepath,T_index=2,f_index=1,freq_num=16,sample_and_cutout_num=(150,120),step=30,name_temperaturesplitfolder=None,name_frequencesplitfile=None)
+    TMR_split(filepath,T_index=2,f_index=1,freq_num=16,sample_and_cutout_num=(150,120),step=30,name_temperaturesplitfolder=None,name_frequencesplitfile=None,step=-1)
 
 
+step=0
+state=0
+pre_data:Data=None
+TIME_INTERVAL=20 #20秒ごとにチェック(間隔が短すぎるとうまくいかない。長すぎると判定が遅れてしまう)
+T_SPEED_THREAHOLD=0.08 # [K/secound] を超えたら速度変化ありとする 今回は20秒で1.6℃変化する速度に対応
+def check_step(data:Data): #温度変化を検知して温度スイープに番号をつける部分
+    global step,pre_data,state
+    if data.time - pre_data.time >TIME_INTERVAL:
+        T_speed=(data.temperature-pre_data.temperature)/(data.time-pre_data.time)#温度速度を計算
+        now_state= 0 if abs(T_speed)<T_SPEED_THREAHOLD \
+              else ( 1 if T_speed > 0 else -1) #温度変化が一定以上なければ0. あれば1か-1
+        
+        if state !=now_state and state !=0: #温度変化が終了した地点でステップを進める
+            step+=1
+        state=now_state
+
+        pre_data=data
+    data.step=step

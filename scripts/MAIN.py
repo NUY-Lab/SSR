@@ -57,6 +57,9 @@ def main() -> None:
     # これがなくても動くっぽいけどわかりやすさのために記述
     sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+   
+    # 測定マクロ側のファイルをimportできるように
+    sys.path.append(os.path.abspath(macrodir))
     # カレントディレクトリを測定マクロ側に変更
     os.chdir(str(macrodir))
 
@@ -110,7 +113,7 @@ def split_only() -> None:
     macroPath = ask_open_filename(
         filetypes=[("pythonファイル", "*.py *.SSR")], title="分割マクロを選択してください"
     )
-
+    sys.path.append(os.path.abspath(macroPath.parent))
     os.chdir(str(macroPath.parent))
 
     logger.info(f"macro: {macroPath.stem}")
@@ -145,7 +148,7 @@ def recalculate_only() -> None:
     macroPath = ask_open_filename(
         filetypes=[("pythonファイル", "*.py *.SSR")], title="再計算マクロを選択してください"
     )
-
+    sys.path.append(os.path.abspath(macroPath.parent))
     os.chdir(str(macroPath.parent))
     logger.info(f"macro: {macroPath.stem}")
     target = get_macro_recalculate(macroPath)
