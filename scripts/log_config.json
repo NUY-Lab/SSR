@@ -18,14 +18,14 @@
     },
     "sharedFileHandler": {
       "class": "logging.FileHandler",
-      "level": "INFO",
+      "level": "DEBUG",
       "formatter": "default",
       "filename": "",
       "encoding": "utf-8"
     }
   },
   "root": {
-    "level": "INFO",
+    "level": "NOTSET",
     "handlers": [
       "consoleHandler",
       "sharedFileHandler"

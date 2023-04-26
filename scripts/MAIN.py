@@ -52,6 +52,7 @@ def main() -> None:
     # マクロファイルのパスを取得
     macropath, _, macrodir = get_macropath()
 
+    logger.info(f"macro: {macropath}")
     # scriptsフォルダーを検索パスに追加
     # これがなくても動くっぽいけどわかりやすさのために記述
     sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -93,8 +94,8 @@ def on_forced_termination(func: Callable[[None], None]) -> None:
         """
 
         if ctrlType == win32con.CTRL_CLOSE_EVENT:
+            logger.debug("terminating measurement...")
             func()
-            print("terminating measurement...")
             # マクロが終了するまで最大100秒待機
             for i in range(100):
                 time.sleep(1)
@@ -105,14 +106,14 @@ def on_forced_termination(func: Callable[[None], None]) -> None:
 
 # 分割関数だけを呼び出し
 def split_only() -> None:
-    print("分割マクロ選択...")
+    logger.info("分割マクロ選択...")
     macroPath = ask_open_filename(
         filetypes=[("pythonファイル", "*.py *.SSR")], title="分割マクロを選択してください"
     )
 
     os.chdir(str(macroPath.parent))
-    print(f"macro: {macroPath.stem}")
 
+    logger.info(f"macro: {macroPath.stem}")
     def noop(address):
         return None
 
@@ -129,33 +130,31 @@ def split_only() -> None:
         pass
 
     target = get_macro_split(macroPath)
-
-    print("分割ファイル選択...")
+    logger.info("分割ファイル選択...")
     filePath = ask_open_filename(
         filetypes=[("データファイル", "*.txt *dat")], title="分割するファイルを選択してください"
     )
-
+    logger.info(f"file: {filePath}")
     target.split(filePath)
     # 画面が閉じないようにinputをいれておく
     input()
 
 
 def recalculate_only() -> None:
-    print("再計算マクロ選択...")
+    logger.info("再計算マクロ選択...")
     macroPath = ask_open_filename(
         filetypes=[("pythonファイル", "*.py *.SSR")], title="再計算マクロを選択してください"
     )
 
     os.chdir(str(macroPath.parent))
-    print(f"macro: {macroPath.stem}")
-
+    logger.info(f"macro: {macroPath.stem}")
     target = get_macro_recalculate(macroPath)
 
-    print("再計算ファイル選択...")
+    logger.info("再計算ファイル選択...")
     filePath = ask_open_filename(
         filetypes=[("データファイル", "*.txt *dat")], title="再計算するファイルを選択してください"
     )
-
+    logger.info(f"file: {filePath}")
     recalc(target, filePath)
 
     # 画面が閉じないようにinputをいれておく
@@ -189,6 +188,8 @@ if __name__ == "__main__":
         if mode in ["MEAS", "SPLIT", "RECALCULATE"]:
             break
         mode = input("mode is > ").upper()
+
+    logger.debug("---------------------------------------------------------------")
 
     # 処理を開始
     try:
