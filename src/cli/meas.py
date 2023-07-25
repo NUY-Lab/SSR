@@ -1,5 +1,4 @@
 import os
-import sys
 import time
 import typing as t
 from logging import getLogger
@@ -12,12 +11,12 @@ import win32con
 # hack
 from variables import USER_VARIABLES
 
+from measure.macro import get_prev_macro_name, load_macro, save_current_macro_name
 from measure.setting import (
     get_prev_setting_path,
     load_settings,
     save_current_setting_path,
 )
-from scripts.macro import get_macro, get_macropath
 from scripts.macro_grammar import macro_grammer_check
 
 from .log import init_user_log
@@ -49,6 +48,9 @@ def meas() -> None:
     if prev_setting_path is not None:
         setting_dir = str(prev_setting_path.parent)
         setting_name = prev_setting_path.name
+    else:
+        setting_dir = None
+        setting_name = None
     with console.status("設定ファイル選択..."):
         setting_path = ask_open_filename(
             filetypes=[("設定ファイル", "*.def")],
@@ -56,7 +58,7 @@ def meas() -> None:
             initialdir=setting_dir,
             initialfile=setting_name,
         )
-    logger.info(f"Setting file: {setting_path.name}")
+    logger.info(f"Setting: {setting_path.name}")
     save_current_setting_path(setting_path)
     load_settings(setting_path)
 
@@ -64,17 +66,22 @@ def meas() -> None:
     init_user_log(USER_VARIABLES.TEMPDIR)
 
     # マクロファイルのパスを取得
-    macropath, _, macrodir = get_macropath()
-
-    # scriptsフォルダーを検索パスに追加
-    # これがなくても動くっぽいけどわかりやすさのために記述
-    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+    prev_macro_name = get_prev_macro_name()
+    with console.status("マクロ選択..."):
+        macro_path = ask_open_filename(
+            filetypes=[("pythonファイル", "*.py *.ssr")],
+            title="マクロを選択してください",
+            initialdir=USER_VARIABLES.MACRODIR,
+            initialfile=prev_macro_name,
+        )
+    logger.info(f"Macro: {macro_path.name}")
+    save_current_macro_name(macro_path.name)
 
     # カレントディレクトリを測定マクロ側に変更
-    os.chdir(str(macrodir))
+    os.chdir(str(macro_path.parent))
 
     # マクロファイルをマクロに変換
-    macro = get_macro(macropath)
+    macro = load_macro(macro_path)
 
     # マクロがSSRの文法規則を満たしているかチェック
     macro_grammer_check(macro)
