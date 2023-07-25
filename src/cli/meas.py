@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import typing as t
+from logging import getLogger
 
 # hack
 import measurement_manager as mm
@@ -11,10 +12,19 @@ import win32con
 # hack
 from variables import USER_VARIABLES
 
-from scripts.define import read_deffile
-from scripts.log import set_user_log
+from measure.setting import (
+    get_prev_setting_path,
+    load_settings,
+    save_current_setting_path,
+)
 from scripts.macro import get_macro, get_macropath
 from scripts.macro_grammar import macro_grammer_check
+
+from .log import init_user_log
+from .rich import console
+from .tkinter import ask_open_filename
+
+logger = getLogger(__name__)
 
 
 def meas() -> None:
@@ -33,11 +43,25 @@ def meas() -> None:
     ↓
     measurementManager._measure_startを実行
     """
+
     # 定義ファイル読み取り
-    read_deffile()
+    prev_setting_path = get_prev_setting_path()
+    if prev_setting_path is not None:
+        setting_dir = str(prev_setting_path.parent)
+        setting_name = prev_setting_path.name
+    with console.status("設定ファイル選択..."):
+        setting_path = ask_open_filename(
+            filetypes=[("設定ファイル", "*.def")],
+            title="設定ファイルを選んでください",
+            initialdir=setting_dir,
+            initialfile=setting_name,
+        )
+    logger.info(f"Setting file: {setting_path.name}")
+    save_current_setting_path(setting_path)
+    load_settings(setting_path)
 
     # ユーザー側にlogファイル表示
-    set_user_log(USER_VARIABLES.TEMPDIR)
+    init_user_log(USER_VARIABLES.TEMPDIR)
 
     # マクロファイルのパスを取得
     macropath, _, macrodir = get_macropath()

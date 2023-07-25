@@ -1,0 +1,2 @@
+class SSRError(Exception):
+    pass
