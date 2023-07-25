@@ -1,6 +1,7 @@
 import logging
 import os
 
+from measure.macro import load_split_macro
 from scripts.macro import get_macro_split
 
 from .rich import console
@@ -12,12 +13,12 @@ logger = logging.getLogger(__name__)
 # 分割関数だけを呼び出し
 def split() -> None:
     with console.status("分割マクロ選択"):
-        macroPath = ask_open_filename(
+        macro_path = ask_open_filename(
             filetypes=[("pythonファイル", "*.py *.SSR")], title="分割マクロを選択してください"
         )
 
-    os.chdir(macroPath.parent)
-    console.print(f"[green]✔ MACRO:[/green] {macroPath.stem}")
+    os.chdir(macro_path.parent)
+    console.print(f"[green]✔ MACRO:[/green] {macro_path.stem}")
 
     try:
         import scripts.ExternalControl.GPIB.GPIB as GPIB
@@ -31,7 +32,7 @@ def split() -> None:
     except Exception:
         pass
 
-    target = get_macro_split(macroPath)
+    target = load_split_macro(macro_path)
 
     with console.status("分割ファイル選択..."):
         filePath = ask_open_filename(

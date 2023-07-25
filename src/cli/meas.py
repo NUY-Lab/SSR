@@ -12,12 +12,12 @@ import win32con
 from variables import USER_VARIABLES
 
 from measure.macro import get_prev_macro_name, load_macro, save_current_macro_name
+from measure.macro_grammar import macro_grammer_check
 from measure.setting import (
     get_prev_setting_path,
     load_settings,
     save_current_setting_path,
 )
-from scripts.macro_grammar import macro_grammer_check
 
 from .log import init_user_log
 from .rich import console
