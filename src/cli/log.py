@@ -23,6 +23,7 @@ def init_log():
     rh.setFormatter(Formatter("%(message)s"))
 
     logger = getLogger()
+    logger.setLevel(INFO)
     logger.addHandler(fh)
     logger.addHandler(rh)
 
