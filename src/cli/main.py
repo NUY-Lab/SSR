@@ -1,19 +1,19 @@
 import ctypes
 import sys
+from logging import getLogger
 from pathlib import Path
 
 # hack
 import variables as variables
-from rich.console import Console
 from rich.prompt import Prompt
 
-from scripts.log import setlog
-
+from .log import init_log
 from .meas import meas
 from .recalculate import recalculate
 from .split import split
 
-console = Console(stderr=True)
+logger = getLogger(__name__)
+
 MODE = ["MEAS", "SPLIT", "RECALCULATE"]
 
 
@@ -28,8 +28,6 @@ def init() -> None:
     mode = 0xFDB7
     kernel32.SetConsoleMode(kernel32.GetStdHandle(-10), mode)
 
-    setlog()
-
 
 def main() -> None:
     mode = ""
@@ -42,6 +40,7 @@ def main() -> None:
 
     try:
         init()
+        init_log()
 
         match mode:
             case "MEAS":
@@ -51,4 +50,4 @@ def main() -> None:
             case "RECALCULATE":
                 recalculate()
     except Exception as e:
-        console.print_exception()
+        logger.exception(e)
