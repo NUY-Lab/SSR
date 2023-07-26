@@ -7,9 +7,8 @@ from logging import getLogger
 from pathlib import Path
 from types import ModuleType
 
-from variables import SHARED_VARIABLES
-
-from measure.error import SSRError
+from .error import SSRError
+from .variable import SHARED_VARIABLES
 
 logger = getLogger(__name__)
 

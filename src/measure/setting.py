@@ -3,10 +3,8 @@
 from logging import getLogger
 from pathlib import Path
 
-# hack
-from variables import SHARED_VARIABLES, USER_VARIABLES
-
 from .error import SSRError
+from .variable import SHARED_VARIABLES, USER_VARIABLES
 
 logger = getLogger(__name__)
 

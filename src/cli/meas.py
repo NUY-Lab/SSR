@@ -3,13 +3,8 @@ import time
 import typing as t
 from logging import getLogger
 
-# hack
-# import measurement_manager as mm
 import win32api
 import win32con
-
-# hack
-from variables import USER_VARIABLES
 
 from measure.macro import get_prev_macro_name, load_macro, save_current_macro_name
 from measure.macro_grammar import macro_grammer_check
@@ -19,6 +14,7 @@ from measure.setting import (
     load_settings,
     save_current_setting_path,
 )
+from measure.variable import USER_VARIABLES
 
 from .log import init_user_log
 from .rich import console

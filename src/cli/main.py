@@ -3,9 +3,9 @@ import sys
 from logging import getLogger
 from pathlib import Path
 
-# hack
-import variables as variables
 from rich.prompt import Prompt
+
+from measure.variable import init as init_var
 
 from .log import init_log
 from .meas import meas
@@ -17,9 +17,8 @@ logger = getLogger(__name__)
 MODE = ["MEAS", "SPLIT", "RECALCULATE"]
 
 
-def init() -> None:
+def init_win() -> None:
     """変数のセット"""
-    variables.init(Path.cwd())
 
     # 簡易編集モードをOFFにするためのおまじない
     # (簡易編集モードがONだと、画面をクリックしたときに処理が停止してしまう)
@@ -39,7 +38,8 @@ def main() -> None:
         )
 
     try:
-        init()
+        init_win()
+        init_var(Path.cwd())
         init_log()
 
         match mode:

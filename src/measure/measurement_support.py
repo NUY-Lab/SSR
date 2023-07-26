@@ -14,9 +14,6 @@ from multiprocessing import Lock, Manager, Process, Value
 
 import pyperclip
 
-# hack
-from variables import USER_VARIABLES
-
 # 一時的
 from cli.tkinter import ask_save_filename
 
@@ -24,6 +21,7 @@ from . import plot
 from .basedata import BaseData
 from .error import SSRError
 from .util import get_date_text
+from .variable import USER_VARIABLES
 
 logger = getLogger(__name__)
 

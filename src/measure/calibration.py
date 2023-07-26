@@ -6,11 +6,9 @@ from typing import Callable
 
 from scipy import interpolate
 
-# hack
-from variables import SHARED_VARIABLES
-
 from .error import SSRError
 from .util import get_encode_type
+from .variable import SHARED_VARIABLES
 
 logger = getLogger(__name__)
 

@@ -9,9 +9,6 @@ import threading
 import time
 from logging import getLogger
 
-# hack
-from variables import USER_VARIABLES
-
 from .measurement_support import (
     CommandReceiver,
     FileManager,
@@ -20,6 +17,7 @@ from .measurement_support import (
     PlotAgency,
 )
 from .util import get_date_text
+from .variable import USER_VARIABLES
 
 logger = getLogger(__name__)
 
