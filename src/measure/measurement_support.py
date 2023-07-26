@@ -16,12 +16,11 @@ import pyperclip
 # hack
 from variables import USER_VARIABLES
 
-import scripts.plot as plot
-
 # 一時的
 from cli.tkinter import ask_save_filename
 from scripts.basedata import BaseData
 
+from . import plot
 from .error import SSRError
 from .util import get_date_text
 
