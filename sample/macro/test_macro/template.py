@@ -1,12 +1,18 @@
 import time
 
-from ExternalControl.GPIB.GPIB import (
-    GPIBController,  # GPIBで接続する機器につながる# inst=GPIBController() でインスタンス作成 # inst.connect(<GPIBアドレス>)で接続 # inst.write(<コマンド>)でコマンド送信 # answer = inst.query(<コマンド>)でコマンド送信&読み取り
-)
-from ExternalControl.LinkamT95.Controller import (
-    LinkamT95AutoController,  # リンカムの操作 # inst=LinkamT95AutoController() でインスタンス作成 # inst.connect(<COMPORTアドレス>)で接続(COMPORTアドレスはデバイスマネージャーからわかる) # inst.add_sequence(<コマンド>)でコマンド送信 # answer = inst.query(<コマンド>)でコマンド送信&読み取り
-)
+# GPIBで接続する機器につながる
+# inst=GPIBController() でインスタンス作成
+# inst.connect(<GPIBアドレス>)で接続
+# inst.write(<コマンド>)でコマンド送信
+# answer = inst.query(<コマンド>)でコマンド送信&読み取り
+from instrument.GPIB import GPIBController
 
+# リンカムの操作
+# inst=LinkamT95AutoController()でインスタンス作成
+# inst.connect(<COMPORTアドレス>)で接続(COMPORTアドレスはデバイスマネージャーからわかる)
+# inst.add_sequence(<コマンド>)でコマンド送信
+# answer = inst.query(<コマンド>)でコマンド送信&読み取り
+from instrument.LinkamT95 import LinkamT95AutoController
 from measure.basedata import BaseData  # 測定データの基本クラス
 from measure.masurement import finish  # 測定の終了 引数なし
 from measure.masurement import log  # ターミナルへのログ出力
@@ -25,8 +31,9 @@ class Data(BaseData):
     capacitance: "[pC]"
 
 
-def start():  # 最初に呼ばれる
-    set_file()  # ファイル作成
+# 最初に呼ばれる
+def start():
+    set_file()
 
     # プロットする条件を指定、今回は点を線でつなぐように設定
     set_plot_info(line=True, xlog=False, ylog=False)
@@ -42,7 +49,9 @@ count = 0
 
 # 0から5までかぞえる
 def update():
-    global count  # グローバル変数を使うときにはglobal宣言を行う
+    # グローバル変数を使うときにはglobal宣言を行う
+    global count
+
     log(f"{count}...")
 
     # 実際の測定の代わりにtimeとcapacitanceの値を入れる
@@ -59,20 +68,24 @@ def update():
 
     count += 1
     if count == 5:
-        return False  # Falseを返すと測定が終了する
+        # Falseを返すと測定が終了する
+        return False
 
-    time.sleep(1)  # 1秒待機
+    time.sleep(1)
 
 
-def end():  # 最後に呼ばれる
+# 最後に呼ばれる
+def end():
     log("end...")
 
 
-def after(path):  # ファイルへの書き込みをすべて完了させてからよばれる ここではファイルに書き込みはできない
+# ファイルへの書き込みをすべて完了させてからよばれる ここではファイルに書き込みはできない
+def after(path):
     log("after...")
 
 
-def on_command(command):  # 測定中にコマンドを入力したら呼ばれる
+# 測定中にコマンドを入力したら呼ばれる
+def on_command(command):
     log(f"command is {command}")
 
 
