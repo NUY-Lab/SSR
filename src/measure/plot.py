@@ -3,7 +3,7 @@
 (データ数が増えてプロットに時間がかかっても測定に影響が出ないようにする)
 """
 import time
-from multiprocessing import Lock
+from multiprocessing.synchronize import Lock
 
 import matplotlib.pyplot as plt
 
@@ -46,6 +46,15 @@ def start_plot_window(
     PlotWindow(share_list, isfinish, lock, **plot_info).run()
 
 
+class LineObj:
+    """matplotlibでプロットしたグラフの線1つにつきこれが1つ作られる"""
+
+    def __init__(self, line, xarray: list, yarray: list):
+        self.line = line
+        self.xarray = xarray
+        self.yarray = yarray
+
+
 class PlotWindow:
     """測定データをグラフにするクラス
 
@@ -71,6 +80,12 @@ class PlotWindow:
         グラフに線をつけるかどうか
     """
 
+    _count_label = 0
+    linedict: dict[str, LineObj] = {}
+    max_x: float | None = None
+    max_y: float | None = None
+    min_x: float | None = None
+    min_y: float | None = None
     _figure = None
     _ax = None
 
@@ -78,7 +93,7 @@ class PlotWindow:
         self,
         share_list,
         isfinish,
-        lock,
+        lock: Lock,
         xlog,
         ylog,
         renew_interval,
@@ -117,24 +132,15 @@ class PlotWindow:
         if plt.get_fignums():
             plt.show(block=True)
 
-    _count_label = 0
-    linedict = {}
-    max_x: float | None = None
-    max_y: float | None = None
-    min_x: float | None = None
-    min_y: float | None = None
-
     def renew_window(self) -> None:
         """プロット画面の更新で呼ぶ関数"""
 
-        # 共有リストにロックをかける
-        self.lock.acquire()
-        # share_listのコピーを作成.
-        # (temp=share_listにすると参照になってしまうのでdel self.share_list[:]でtempも消えてしまう)
-        temp = self.share_list[:]
-        # 共有リストは削除
-        del self.share_list[:]
-        self.lock.release()
+        with self.lock:
+            # share_listのコピーを作成.
+            # (temp=share_listにすると参照になってしまうのでdel self.share_list[:]でtempも消えてしまう)
+            temp = self.share_list[:]
+            # 共有リストは削除
+            del self.share_list[:]
 
         # for文が1回も回らないことがあるのでここで宣言しておく
         xrelim = False
@@ -146,20 +152,20 @@ class PlotWindow:
             if label not in self.linedict:
                 # 最初の一回だけは辞書に登録する
                 xarray = [x_val]
-                yaaray = [y_val]
+                yarray = [y_val]
                 color = COLOR_MAP[(self._count_label) % len(COLOR_MAP)]
                 self._count_label += 1
                 # プロット
                 (line,) = self._ax.plot(
                     xarray,
-                    yaaray,
+                    yarray,
                     marker=".",
                     color=color,
                     label=label,
                     linestyle=self.linestyle,
                 )
                 # 辞書に追加
-                lineobj = LineObj(line, xarray, yaaray)
+                lineobj = LineObj(line, xarray, yarray)
                 self.linedict[label] = lineobj
 
                 if self.legend:
@@ -187,8 +193,8 @@ class PlotWindow:
                 # 2回目以降は色をキーにして辞書からLineObjをとってくる
                 lineobj = self.linedict[label]
                 lineobj.xarray.append(x_val)
-                lineobj.yaaray.append(y_val)
-                lineobj.line.set_data(lineobj.xarray, lineobj.yaaray)
+                lineobj.yarray.append(y_val)
+                lineobj.line.set_data(lineobj.xarray, lineobj.yarray)
 
             # 今までの範囲の外にプロットしたときは範囲を更新
             if self.max_x is None:
@@ -231,7 +237,7 @@ class PlotWindow:
                 # 範囲外のプロットは消す
                 for line_obj in self.linedict.values():
                     xarray = line_obj.xarray
-                    yaaray = line_obj.yaaray
+                    yarray = line_obj.yarray
                     cut = 0
                     for i, xvalue in enumerate(xarray):
                         if xvalue < xmin:
@@ -240,16 +246,7 @@ class PlotWindow:
                             cut = max(i - 1, 0)
                             break
                     line_obj.xarray = xarray[cut:]
-                    line_obj.yaaray = yaaray[cut:]
+                    line_obj.yarray = yarray[cut:]
 
         # グラフを再描画するおまじない
         self._figure.canvas.flush_events()
-
-
-class LineObj:
-    """matplotlibでプロットしたグラフの線1つにつきこれが1つ作られる"""
-
-    def __init__(self, line, xarray, yaaray):
-        self.line = line
-        self.xarray = xarray
-        self.yaaray = yaaray

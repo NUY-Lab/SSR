@@ -4,6 +4,7 @@ measurement_managerモジュールで利用するクラスの詰め合わせ
 
 
 import msvcrt
+import multiprocessing.synchronize
 import os
 import threading
 import time
@@ -237,7 +238,7 @@ class PlotAgency:
     # 測定の終了を判断するためのint
     __isfinish: Value
     # 2つのプロセスで同時に同じデータを触らないようにする排他制御のキー
-    process_lock: Lock
+    process_lock: multiprocessing.synchronize.Lock
     plot_process: Process
 
     def __init__(self) -> None:
@@ -344,9 +345,8 @@ class PlotAgency:
         if self.is_plot_window_alive():
             data = (x, y, label)
             #   ロックをかけて別プロセスからアクセスできないようにする
-            self.process_lock.acquire()
-            self.share_list.append(data)
-            self.process_lock.release()
+            with self.process_lock:
+                self.share_list.append(data)
 
     def stop_renew_plot_window(self) -> None:
         """プロットウィンドウの更新を停止"""
