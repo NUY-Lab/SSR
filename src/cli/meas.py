@@ -4,7 +4,7 @@ import typing as t
 from logging import getLogger
 
 # hack
-import measurement_manager as mm
+# import measurement_manager as mm
 import win32api
 import win32con
 
@@ -13,6 +13,7 @@ from variables import USER_VARIABLES
 
 from measure.macro import get_prev_macro_name, load_macro, save_current_macro_name
 from measure.macro_grammar import macro_grammer_check
+from measure.masurement import finish, start_macro
 from measure.setting import (
     get_prev_setting_path,
     load_settings,
@@ -87,10 +88,11 @@ def meas() -> None:
     macro_grammer_check(macro)
 
     # 強制終了時の処理を追加
-    on_forced_termination(lambda: mm.finish())
+    on_forced_termination(lambda: finish())
 
     # 測定開始
-    mm.start_macro(macro)
+    # with console.status("測定中"):
+    start_macro(macro, console)
 
 
 def on_forced_termination(func: t.Callable[[None], None]) -> None:
