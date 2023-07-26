@@ -19,9 +19,9 @@ from variables import USER_VARIABLES
 
 # 一時的
 from cli.tkinter import ask_save_filename
-from scripts.basedata import BaseData
 
 from . import plot
+from .basedata import BaseData
 from .error import SSRError
 from .util import get_date_text
 
