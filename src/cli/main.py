@@ -23,7 +23,7 @@ def init_win() -> None:
     # 簡易編集モードをOFFにするためのおまじない
     # (簡易編集モードがONだと、画面をクリックしたときに処理が停止してしまう)
     kernel32 = ctypes.windll.kernel32
-    # 簡易編集モードとENABLE_WINDOW_INPUT と ENABLE_VIRTUAL_TERMINAL_INPUT をOFFに
+    # 簡易編集モードとENABLE_WINDOW_INPUTとENABLE_VIRTUAL_TERMINAL_INPUTをOFFに
     mode = 0xFDB7
     kernel32.SetConsoleMode(kernel32.GetStdHandle(-10), mode)
 
@@ -31,16 +31,24 @@ def init_win() -> None:
 def main() -> None:
     mode = ""
     if len(sys.argv) > 1:
+        # devフラグがあったらログレベルをDEBUGにする
+        try:
+            sys.argv.pop(sys.argv.index("--dev"))
+            dev = True
+        except ValueError:
+            dev = False
         mode = sys.argv[1].upper()
     if not mode in MODE:
         mode = Prompt.ask(
-            "Mode is", choices=["MEAS", "SPLIT", "RECALCULATE"], default="MEAS"
+            "Mode is",
+            choices=["MEAS", "SPLIT", "RECALCULATE"],
+            default="MEAS",
         )
 
     try:
         init_win()
         init_var(Path.cwd())
-        init_log()
+        init_log(dev)
 
         match mode:
             case "MEAS":

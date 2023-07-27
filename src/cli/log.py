@@ -1,5 +1,5 @@
 from datetime import datetime
-from logging import INFO, FileHandler, Formatter, getLogger
+from logging import DEBUG, INFO, FileHandler, Formatter, getLogger
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
@@ -10,7 +10,7 @@ default_format = (
 )
 
 
-def init_log():
+def init_log(dev=False):
     now = datetime.now()
 
     filename = f"./log/{now.year}-{now.month}.log"
@@ -19,11 +19,11 @@ def init_log():
     fh.setFormatter(Formatter(default_format))
 
     rh = RichHandler(rich_tracebacks=True)
-    rh.setLevel(INFO)
+    rh.setLevel(INFO if not dev else DEBUG)
     rh.setFormatter(Formatter("%(message)s"))
 
     logger = getLogger()
-    logger.setLevel(INFO)
+    logger.setLevel(INFO if not dev else DEBUG)
     logger.addHandler(fh)
     logger.addHandler(rh)
 
