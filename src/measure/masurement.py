@@ -5,16 +5,15 @@
 """
 import msvcrt
 import sys
-import threading
-import time
 from logging import getLogger
+
+from cli.plot import PlotAgency
 
 from .measurement_support import (
     CommandReceiver,
     FileManager,
     MeasurementState,
     MeasurementStep,
-    PlotAgency,
 )
 from .util import get_date_text
 from .variable import USER_VARIABLES
@@ -99,7 +98,8 @@ def set_plot_info(
 
     if _measurement_manager.state.current_step != MeasurementStep.START:
         logger.warning(sys._getframe().f_code.co_name + "はstart関数内で用いてください")
-    _measurement_manager.plot_agency.set_plot_info(
+    # _measurement_manager.plot_agency.set_plot_info(
+    _measurement_manager.plot_agency.set_info(
         line=line,
         xlog=xlog,
         ylog=ylog,
@@ -159,7 +159,7 @@ def plot_data(x: float, y: float, label: str = "default") -> None:
     plot(x, y, label)
 
 
-def plot(x: float, y: float, label: str = "default") -> None:
+def plot(x: float, y: float, label="default") -> None:
     """データをグラフ描画プロセスに渡す.
 
     labelが変わると色が変わる
@@ -191,6 +191,10 @@ def no_plot() -> None:
 
 def log(msg: str) -> None:
     _measurement_manager.console.log(msg)
+
+
+def _get_measurement_manager() -> "MeasurementManager":
+    return _measurement_manager
 
 
 class MeasurementManager:
@@ -242,7 +246,8 @@ class MeasurementManager:
             )
 
         # グラフウィンドウの立ち上げ
-        self.plot_agency.run_plot_window()
+        # self.plot_agency.run_plot_window()
+        self.plot_agency.run()
 
         # 既に入っている入力は消す
         while msvcrt.kbhit():
@@ -270,12 +275,14 @@ class MeasurementManager:
                 # コマンドが入っていればコマンドを呼ぶ
                 self.macro.on_command(command)
 
-            if self.plot_agency.is_plot_window_forced_terminated():
+            # if self.plot_agency.is_plot_window_forced_terminated():
+            if not self.plot_agency.is_active():
                 logger.debug("measurement has finished because plot window closed")
                 self.is_measuring = False
 
         self.state.current_step = MeasurementStep.FINISH_MEASURE
-        self.plot_agency.stop_renew_plot_window()
+        # self.plot_agency.stop_renew_plot_window()
+        self.plot_agency.pause()
 
         # 既に入っている入力は消す
         while msvcrt.kbhit():
@@ -299,53 +306,6 @@ class MeasurementManager:
 
             if self.macro.after is not None:
                 self.macro.after(self.file_manager.filepath)
-
-        self.end()
-
-    def end(self):
-        """終了処理. コンソールからの終了と､グラフウィンドウを閉じたときの終了の2つを実行できるようにスレッドを用いる"""
-
-        # コンソール側の終了
-        def wait_enter():
-            # nonlocalを使うとクロージャーになる
-            nonlocal endflag, windowclose
-            # エンターを押したら次へ進める
-            input("enter and close window...")
-            endflag = True
-            windowclose = True
-
-        # グラフウィンドウからの終了
-        def wait_closewindow():
-            nonlocal endflag
-            while True:
-                if not self.plot_agency.is_plot_window_alive():
-                    break
-                time.sleep(0.2)
-            endflag = True
-
-        endflag = False
-        windowclose = False
-
-        thread1 = threading.Thread(target=wait_closewindow)
-        thread1.setDaemon(True)
-        thread1.start()
-
-        time.sleep(0.1)
-
-        # 既にグラフが消えていた場合はwait_enterを終了処理とする.
-        # それ以外の場合はwait_closewindowも終了処理とする
-        endflag = False
-
-        thread2 = threading.Thread(target=wait_enter)
-        thread2.setDaemon(True)
-        thread2.start()
-
-        while True:
-            if endflag:
-                if not windowclose:
-                    self.plot_agency.close()
-                break
-            time.sleep(0.05)
 
     def dont_make_file(self):
         self._dont_make_file = True

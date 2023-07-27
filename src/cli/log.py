@@ -5,6 +5,8 @@ from pathlib import Path
 
 from rich.logging import RichHandler
 
+from .rich import console
+
 default_format = (
     "[%(asctime)s] [%(levelname)8s] [%(filename)s:%(lineno)s %(funcName)s]  %(message)s"
 )
@@ -18,7 +20,7 @@ def init_log(dev=False):
     fh.setLevel(INFO)
     fh.setFormatter(Formatter(default_format))
 
-    rh = RichHandler(rich_tracebacks=True)
+    rh = RichHandler(rich_tracebacks=True, console=console)
     rh.setLevel(INFO if not dev else DEBUG)
     rh.setFormatter(Formatter("%(message)s"))
 

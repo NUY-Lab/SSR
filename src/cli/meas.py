@@ -1,4 +1,5 @@
 import os
+import threading
 import time
 import typing as t
 from logging import getLogger
@@ -8,7 +9,7 @@ import win32con
 
 from measure.macro import get_prev_macro_name, load_macro, save_current_macro_name
 from measure.macro_grammar import macro_grammer_check
-from measure.masurement import finish, start_macro
+from measure.masurement import _get_measurement_manager, finish, start_macro
 from measure.setting import (
     get_prev_setting_path,
     load_settings,
@@ -84,11 +85,47 @@ def meas() -> None:
     macro_grammer_check(macro)
 
     # 強制終了時の処理を追加
-    on_forced_termination(lambda: finish())
+    on_forced_termination(finish)
 
     # 測定開始
-    # with console.status("測定中"):
-    start_macro(macro, console)
+    with console.status("測定中"):
+        start_macro(macro, console)
+
+    # hack
+    mm = _get_measurement_manager()
+
+    # コンソール側の終了
+    def wait_enter():
+        # nonlocalを使うとクロージャーになる
+        nonlocal endflag, windowclose
+        console.input("enter and close window...")
+        endflag = True
+        windowclose = True
+
+    # グラフウィンドウからの終了
+    def wait_closewindow():
+        nonlocal endflag
+        while mm.plot_agency.is_active():
+            time.sleep(0.2)
+        endflag = True
+
+    endflag = False
+    windowclose = False
+
+    thread1 = threading.Thread(target=wait_closewindow)
+    thread1.setDaemon(True)
+    thread1.start()
+
+    # 既にグラフが消えていた場合はwait_enterを終了処理とする.
+    # それ以外の場合はwait_closewindowも終了処理とする
+    thread2 = threading.Thread(target=wait_enter)
+    thread2.setDaemon(True)
+    thread2.start()
+
+    while not endflag:
+        if windowclose:
+            mm.plot_agency.close()
+        time.sleep(0.05)
 
 
 def on_forced_termination(func: t.Callable[[None], None]) -> None:
@@ -110,6 +147,10 @@ def on_forced_termination(func: t.Callable[[None], None]) -> None:
             print("terminating measurement...")
             for i in range(100):
                 time.sleep(1)
+
+        elif ctrlType == win32con.CTRL_C_EVENT or ctrlType == win32con.CTRL_BREAK_EVENT:
+            func()
+            print("terminating measurement...")
 
     # イベントが起きたときにconsoleCtrHandlerを実行するようにPCに命令
     win32api.SetConsoleCtrlHandler(consoleCtrHandler, True)
