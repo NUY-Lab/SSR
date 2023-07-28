@@ -9,5 +9,7 @@ temp/[^.]*
 /log/
 /shared_settings/
 /sample/data/*.*
+/sample/data/*/
 /sample/temp/*.*
+/sample/temp/*/
 *.log
