@@ -16,6 +16,7 @@ pywin32 = "==305"
 pyvisa = "==1.13.0"
 pyserial = "==3.5"
 pyperclip = "==1.8.2"
+pandas = "*"
 
 [dev-packages]
 black = ">=23.1.0"
