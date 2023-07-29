@@ -123,7 +123,6 @@ class FileSplitter:
             for i in range(skip_rows):
                 self.label+=f.readline()
         data=pd.read_csv(filepath,skiprows=skip_rows,delimiter=delimiter,header=None)
-        print(data.values.tolist())
         fileinfo=FileSplitter.FileInfo(name=filepath.stem,data=data.values.tolist(),count=None)
         fileinfo.is_root=True
         self.rootfileinfo=fileinfo
