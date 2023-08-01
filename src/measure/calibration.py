@@ -8,7 +8,7 @@ from scipy import interpolate
 
 from .error import SSRError
 from .util import get_encode_type
-from .variable import SHARED_VARIABLES
+from .variable import SHAREDDIR
 
 logger = getLogger(__name__)
 
@@ -40,7 +40,7 @@ class TMRCalibrationManager:
 
     def set_shared_calib_file(self) -> None:
         """キャリブレーションファイルを共有フォルダから取得してインスタンスにセット"""
-        path = SHARED_VARIABLES.SETTINGDIR / "calibration_file"
+        path = SHAREDDIR / "calibration_file"
         if not path.is_dir():
             path.mkdir()
         import glob

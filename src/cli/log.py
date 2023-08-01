@@ -15,7 +15,7 @@ default_format = (
 def init_log(dev=False):
     now = datetime.now()
 
-    filename = f"./log/{now.year}-{now.month}.log"
+    filename = f"./.ssr/log/{now.year}-{now.month}.log"
     fh = FileHandler(filename=filename, encoding="utf-8")
     fh.setLevel(INFO)
     fh.setFormatter(Formatter(default_format))

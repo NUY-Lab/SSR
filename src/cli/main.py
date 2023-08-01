@@ -1,7 +1,6 @@
 import ctypes
 import sys
 from logging import getLogger
-from pathlib import Path
 
 from rich.prompt import Prompt
 
@@ -47,7 +46,7 @@ def main() -> None:
 
     try:
         init_win()
-        init_var(Path.cwd())
+        init_var()
         init_log(dev)
 
         match mode:

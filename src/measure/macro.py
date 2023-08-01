@@ -10,7 +10,7 @@ from types import ModuleType
 from typing import Callable
 
 from .error import SSRError
-from .variable import SHARED_VARIABLES
+from .variable import TMPDIR
 
 logger = getLogger(__name__)
 
@@ -30,7 +30,7 @@ class MeasureMacro:
 
 
 def get_prev_macro_name() -> str | None:
-    cache = SHARED_VARIABLES.TEMPDIR / "premacroname"
+    cache = TMPDIR / "premacroname"
     try:
         return Path(cache.read_text(encoding="utf-8")).name
     except FileNotFoundError:
@@ -38,7 +38,7 @@ def get_prev_macro_name() -> str | None:
 
 
 def save_current_macro_name(name: str) -> None:
-    cache = SHARED_VARIABLES.TEMPDIR / "premacroname"
+    cache = TMPDIR / "premacroname"
     cache.write_text(name, encoding="utf-8")
 
 

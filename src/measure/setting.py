@@ -4,7 +4,7 @@ from logging import getLogger
 from pathlib import Path
 
 from .error import SSRError
-from .variable import SHARED_VARIABLES
+from .variable import TMPDIR
 
 logger = getLogger(__name__)
 
@@ -14,7 +14,7 @@ class SettingFileError(SSRError):
 
 
 def get_prev_setting_path() -> Path | None:
-    cache = SHARED_VARIABLES.TEMPDIR / "deffilepath"
+    cache = TMPDIR / "deffilepath"
     try:
         return Path(cache.read_text(encoding="utf-8"))
     except FileNotFoundError:
@@ -22,7 +22,7 @@ def get_prev_setting_path() -> Path | None:
 
 
 def save_current_setting_path(path: Path) -> None:
-    cache = SHARED_VARIABLES.TEMPDIR / "deffilepath"
+    cache = TMPDIR / "deffilepath"
     cache.write_text(str(path), encoding="utf-8")
 
 

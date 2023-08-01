@@ -3,11 +3,6 @@ __pycache__/
 .venv/
 
 # SSR
-/example/
-temp/[^.]*
 /test/
-/log/
-/shared_settings/
-/sample/data/*.*
-/sample/temp/*.*
+.ssr/
 *.log
