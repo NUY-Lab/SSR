@@ -1,23 +1,23 @@
 import os
-import threading
 import time
-import typing as t
 from logging import getLogger
+from multiprocessing import Event, Process, Queue
+from queue import Empty
+from typing import Callable
 
 import win32api
 import win32con
 
-from measure.macro import get_prev_macro_name, load_macro, save_current_macro_name
-from measure.macro_grammar import macro_grammer_check
-from measure.masurement import _get_measurement_manager, finish, start_macro
+from measure.macro import get_prev_macro_name, save_current_macro_name
+from measure.masurement import Measurement
 from measure.setting import (
     get_prev_setting_path,
     load_settings,
     save_current_setting_path,
 )
-from measure.variable import USER_VARIABLES
 
 from .log import init_user_log
+from .plot import DEFAULT_INFO, PlotWindow
 from .rich import console
 from .tkinter import ask_open_filename
 
@@ -25,22 +25,6 @@ logger = getLogger(__name__)
 
 
 def meas() -> None:
-    """
-    測定マクロを動かすための準備をするスクリプト
-
-    実装としては
-
-    定義ファイル選択
-    ↓
-    測定マクロ選択
-    ↓
-    測定マクロ読み込み
-    ↓
-    必要な関数(updateなど)があるか確認
-    ↓
-    measurementManager._measure_startを実行
-    """
-
     # 定義ファイル読み取り
     prev_setting_path = get_prev_setting_path()
     if prev_setting_path is not None:
@@ -58,10 +42,10 @@ def meas() -> None:
         )
     logger.info(f"Setting: {setting_path.name}")
     save_current_setting_path(setting_path)
-    load_settings(setting_path)
+    (datadir, tmpdir, macrodir) = load_settings(setting_path)
 
     # ユーザー側にlogファイル表示
-    init_user_log(USER_VARIABLES.TEMPDIR)
+    init_user_log(tmpdir)
 
     # マクロファイルのパスを取得
     prev_macro_name = get_prev_macro_name()
@@ -69,7 +53,7 @@ def meas() -> None:
         macro_path = ask_open_filename(
             filetypes=[("pythonファイル", "*.py *.ssr")],
             title="マクロを選択してください",
-            initialdir=USER_VARIABLES.MACRODIR,
+            initialdir=macrodir,
             initialfile=prev_macro_name,
         )
     logger.info(f"Macro: {macro_path.name}")
@@ -78,62 +62,66 @@ def meas() -> None:
     # カレントディレクトリを測定マクロ側に変更
     os.chdir(str(macro_path.parent))
 
-    # マクロファイルをマクロに変換
-    macro = load_macro(macro_path)
-
-    # マクロがSSRの文法規則を満たしているかチェック
-    macro_grammer_check(macro)
+    # 測定開始
+    q = Queue(maxsize=10)
+    abort = Event()
+    measurement = Measurement(datadir, macro_path, q, abort)
+    p = Process(target=measurement.run)
+    pw = None
+    pw_info = None
 
     # 強制終了時の処理を追加
-    on_forced_termination(finish)
+    on_forced_termination(lambda: abort.set())
 
-    # 測定開始
     with console.status("測定中"):
-        start_macro(macro, console)
+        p.start()
 
-    # hack
-    mm = _get_measurement_manager()
+        while True:
+            # 測定側からのキューを処理する
+            try:
+                msg = q.get_nowait()
 
-    # コンソール側の終了
-    def wait_enter():
-        # nonlocalを使うとクロージャーになる
-        nonlocal endflag, windowclose
-        console.input("enter and close window...")
-        endflag = True
-        windowclose = True
+                if msg[0] == "plot":
+                    (key, x, y) = msg[1]
+                    if pw is None:
+                        pw = PlotWindow({key: ([x], [y])}, pw_info)
+                        pw.plot(DEFAULT_INFO)
+                    else:
+                        pw.append(key, x, y)
+                    continue
+                elif msg[0] == "plot:info":
+                    pw_info = msg[1]
+                elif msg[0] == "log":
+                    console.log(msg[1])
+                    continue
+                elif msg[0] == "finish":
+                    print("finish")
+                    break
+            except Empty:
+                pass
 
-    # グラフウィンドウからの終了
-    def wait_closewindow():
-        nonlocal endflag
-        while mm.plot_agency.is_active():
-            time.sleep(0.2)
-        endflag = True
+            # プロットのイベントを処理する
+            if pw is not None:
+                if not pw.is_active():
+                    abort.set()
+                    pw = None
+                    break
+                pw.flush_events()
+            time.sleep(0.033)  # 1/30 s
+        p.join()
 
-    endflag = False
-    windowclose = False
-
-    thread1 = threading.Thread(target=wait_closewindow)
-    thread1.setDaemon(True)
-    thread1.start()
-
-    # 既にグラフが消えていた場合はwait_enterを終了処理とする.
-    # それ以外の場合はwait_closewindowも終了処理とする
-    thread2 = threading.Thread(target=wait_enter)
-    thread2.setDaemon(True)
-    thread2.start()
-
-    while not endflag:
-        if windowclose:
-            mm.plot_agency.close()
-        time.sleep(0.05)
+    while True:
+        if not pw.is_active():
+            break
+        pw.flush_events()
+        time.sleep(0.033)
 
 
-def on_forced_termination(func: t.Callable[[None], None]) -> None:
+def on_forced_termination(func: Callable[[None], None]) -> None:
     """強制終了時の処理を追加する"""
 
     def consoleCtrHandler(ctrlType):
         """コマンドプロンプト上でイベントが発生したときに呼ばれる関数
-
         PC側で実行される(こちらから実行はしない)
 
         Parameter

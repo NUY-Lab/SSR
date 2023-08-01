@@ -4,7 +4,7 @@ from logging import getLogger
 from pathlib import Path
 
 from .error import SSRError
-from .variable import SHARED_VARIABLES, USER_VARIABLES
+from .variable import SHARED_VARIABLES
 
 logger = getLogger(__name__)
 
@@ -26,7 +26,7 @@ def save_current_setting_path(path: Path) -> None:
     cache.write_text(str(path), encoding="utf-8")
 
 
-def load_settings(path: Path) -> None:
+def load_settings(path: Path) -> tuple[Path, Path, Path | None]:
     datadir = None
     tmpdir = None
     macrodir = None
@@ -68,6 +68,4 @@ def load_settings(path: Path) -> None:
             logger.warning("%sは定義ファイルに設定されていますが存在しません", macrodir)
             macrodir = None
 
-    USER_VARIABLES.DATADIR = datadir
-    USER_VARIABLES.TEMPDIR = tmpdir
-    USER_VARIABLES.MACRODIR = macrodir
+    return datadir, tmpdir, macrodir

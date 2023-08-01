@@ -1,19 +1,60 @@
-import time
-from multiprocessing import Event, Process, Queue
-from queue import Empty
-
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 
-from measure.error import SSRError
-from measure.plot import COLOR_MAP, Plot
+COLOR_MAP = (
+    "black",
+    "red",
+    "green",
+    "blue",
+    "orange",
+    "deepskyblue",
+    "purple",
+    "gray",
+    "saddlebrown",
+    "crimson",
+    "limegreen",
+    "royalblue",
+    "orangered",
+    "skyblue",
+    "darkslategray",
+    "deeppink",
+    "darkslateblue",
+    "olivedrab",
+    "darkgoldenrod",
+    "brown",
+    "teal",
+    "lightgray",
+)
 
 
-class PlotWindow(Plot):
+DEFAULT_INFO = {
+    "line": False,
+    "xlog": False,
+    "ylog": False,
+    "renew_interval": 1,
+    "legend": False,
+    "flowwidth": 0,
+}
+
+
+class PlotWindow:
     def __init__(
-        self, data: dict[str, tuple[list[float], list[float]]] | None = None
+        self,
+        data: dict[str, tuple[list[float], list[float]]] | None = None,
+        info: dict | None = None,
     ) -> None:
         self._data = data if data is not None else {"default": ([], [])}
+        self._info = (
+            info
+            if info is not None
+            else {
+                "line": False,
+                "xlog": False,
+                "ylog": False,
+                "legend": False,
+                "flowwidth": 0,
+            }
+        )
         self._ln: dict[str, Line2D] = {}
         self._interval = 0.1
 
@@ -103,101 +144,3 @@ class PlotWindow(Plot):
     def flush_events(self):
         if self.is_active():
             self._fig.canvas.flush_events()
-
-
-def plot_window(info, q: Queue, close):
-    pw = PlotWindow()
-    pw.plot(info)
-
-    while True:
-        if close.is_set():
-            break
-        if not pw.is_active():
-            break
-
-        try:
-            (x, y, label) = q.get_nowait()
-            pw.append(label, x, y)
-        except Empty:
-            pass
-
-        pw.flush_events()
-        time.sleep(0.033)
-
-
-class PlotAgentError(SSRError):
-    pass
-
-
-# TODO: remove it when we start measuring in a background process
-class PlotAgency:
-    def __init__(self) -> None:
-        self.process = None
-        self.info = {
-            "line": False,
-            "xlog": False,
-            "ylog": False,
-            "renew_interval": 1,
-            "legend": False,
-            "flowwidth": 0,
-        }
-
-    def run(self) -> None:
-        self.queue = Queue(maxsize=5)
-        self.close_event = Event()
-        self.process = Process(
-            target=plot_window, args=(self.info, self.queue, self.close_event)
-        )
-        self.process.start()
-
-    def set_info(
-        self,
-        line=False,
-        xlog=False,
-        ylog=False,
-        renew_interval=1,
-        legend=False,
-        flowwidth=0,
-    ) -> None:
-        if self.process is not None:
-            raise PlotAgentError("set_infoはrunの前に呼ぶ必要があります")
-        if type(line) is not bool:
-            raise PlotAgentError("set_plot_infoの引数に問題があります: lineの値はboolです")
-        if type(xlog) is not bool or type(ylog) is not bool:
-            raise PlotAgentError("set_plot_infoの引数に問題があります: xlog,ylogの値はboolです")
-        if type(legend) is not bool:
-            raise PlotAgentError("set_plot_infoの引数に問題があります: legendの値はboolです")
-        if type(flowwidth) is not float and type(flowwidth) is not int:
-            raise PlotAgentError("set_plot_infoの引数に問題があります: flowwidthの型はintかfloatです")
-        if flowwidth < 0:
-            raise PlotAgentError("set_plot_infoの引数に問題があります: flowwidthの値は0以上にする必要があります")
-        if type(renew_interval) is not float and type(renew_interval) is not int:
-            raise PlotAgentError(
-                "set_plot_infoの引数に問題があります: renew_intervalの型はintかfloatです"
-            )
-        if renew_interval < 0:
-            raise PlotAgentError(
-                "set_plot_infoの引数に問題があります: renew_intervalの型は0以上にする必要があります"
-            )
-
-        self.info = {
-            "line": line,
-            "xlog": xlog,
-            "ylog": ylog,
-            "renew_interval": renew_interval,
-            "legend": legend,
-            "flowwidth": flowwidth,
-        }
-
-    def plot(self, x: float, y: float, label="default") -> None:
-        self.queue.put((x, y, label))
-
-    def pause(self) -> None:
-        pass
-
-    def close(self) -> None:
-        self.close_event.set()
-        self.process.join()
-
-    def is_active(self) -> bool:
-        return self.process.is_alive()

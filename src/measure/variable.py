@@ -33,58 +33,6 @@ class PathObject:
         self.__value = value
 
 
-class USER_VARIABLES:
-    """各ユーザーがそれぞれ個別に持つ変数
-
-    各プロパティに対応するセッターが存在する
-
-    Property
-    --------
-
-    TEMPDIR: Path
-        一時フォルダのパス
-    DATADIR: Path
-        データ保存フォルダ
-    MACRODIR: Path
-        測定マクロのフォルダ
-    """
-
-    __TEMPDIR = PathObject()
-
-    @classmethod
-    @property
-    def TEMPDIR(cls) -> Path:
-        """プロパティ"""
-        return cls.__TEMPDIR.value
-
-    @classmethod
-    def set_TEMPDIR(cls, value: Path):
-        """セッター"""
-        cls.__TEMPDIR.value = value
-
-    __DATADIR = PathObject()
-
-    @classmethod
-    @property
-    def DATADIR(cls) -> Path:
-        return cls.__DATADIR.value
-
-    @classmethod
-    def set_DATADIR(cls, value: Path):
-        cls.__DATADIR.value = value
-
-    __MACRODIR = PathObject()
-
-    @classmethod
-    @property
-    def MACRODIR(cls) -> Path:
-        return cls.__MACRODIR.value
-
-    @classmethod
-    def set_MACRODIR(cls, value: Path):
-        cls.__MACRODIR.value = value
-
-
 class SHARED_VARIABLES:
     """ユーザー間で共通してもつ変数
 
