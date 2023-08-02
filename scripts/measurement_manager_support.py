@@ -77,8 +77,8 @@ class FileManager:  # ファイルの管理
     class FileIO:
         """実際にファイルに書き込みをする部分"""
         __filepath=None
-        def __init__(self,filepath) -> None:
-            self.__filepath=filepath
+        def __init__(self,filepath:Path) -> None:
+            self.__filepath=Path(filepath)
             self.__file = open(filepath,"x",encoding="utf-8")
 
         def write(self,text) -> None:
