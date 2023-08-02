@@ -49,12 +49,12 @@ def set_file(filename: str = None, add_date: bool = True):
     """
 
     if filename is not None and add_date:
-        filename=f"{filename}{get_date_text()}.txt"
+        filename=f"{get_date_text()}{filename}.txt" #先頭に日付追加
     
     if filename is not None:
-        _measurement_manager.file_manager.set_file(filepath=f"{USER_VARIABLES.DATADIR}/{filename}")
+        _measurement_manager.file_manager.set_file(filepath=f"{USER_VARIABLES.DATADIR}/{filename}") #データフォルダの下にファイルを作る
     else:
-        _measurement_manager.file_manager.set_file(filepath=None)
+        _measurement_manager.file_manager.set_file(filepath=None) #filepath=NoneだとFileManagerがダイアログを出してくれる(設計に作っているはず)
 
 def set_file_name(filename: str, add_date: bool = True) -> None:
     logger.warning("関数set_file_nameは非推奨です。 set_fileを使ってください")
