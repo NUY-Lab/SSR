@@ -78,6 +78,6 @@ def on_command(command):  # 測定中にコマンドを入力したら呼ばれ�
 
 
 # splitは周波数分割などをする際に用いる。これを書くと測定ファイルはフォルダに入れられる
-def split(path):
-    FileSplitter(filepath=path,skip_rows=1,delimiter=",").column_value_split(colum_num=2).create(delimiter="\t")
+# def split(path):
+#     FileSplitter(filepath=path,skip_rows=1,delimiter=",").column_value_split(colum_num=2).create(delimiter="\t")
 #    #分割用の処理をここに書く

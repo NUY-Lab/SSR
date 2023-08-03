@@ -4,13 +4,16 @@
 一部処理はmeasurement_manager_supportに切り出しています
 """
 import msvcrt
+import os
 import sys
 import threading
 import time
 from logging import getLogger
+from pathlib import Path
 from typing import Optional, Union
 
 import calibration as calib
+import pyperclip
 from measurement_manager_support import (
     CommandReceiver,
     FileManager,
@@ -18,7 +21,7 @@ from measurement_manager_support import (
     MeasurementStep,
     PlotAgency,
 )
-from utility import get_date_text
+from utility import ask_save_filename, get_date_text
 from variables import USER_VARIABLES
 
 logger = getLogger(__name__)
@@ -47,14 +50,19 @@ def set_file(filename: str = None, add_date: bool = True):
     add_date : bool
         ファイル名の先頭に日付をつけるかどうか
     """
-
-    if filename is not None and add_date:
-        filename=f"{get_date_text()}{filename}.txt" #先頭に日付追加
+        
     
     if filename is not None:
-        _measurement_manager.file_manager.set_file(filepath=f"{USER_VARIABLES.DATADIR}/{filename}") #データフォルダの下にファイルを作る
+        pyperclip.copy(filename) #ファイル名はクリップボードにコピーしておく
+        if add_date:
+            filename=f"{get_date_text()}_{filename}.txt" #先頭に日付追加
+            filepath=Path(f"{USER_VARIABLES.DATADIR}/{filename}")
+        _measurement_manager.file_manager.set_file(filepath=filepath) #データフォルダの下にファイルを作る
     else:
-        _measurement_manager.file_manager.set_file(filepath=None) #filepath=NoneだとFileManagerがダイアログを出してくれる(設計に作っているはず)
+        filepath=ask_save_filename(filetypes=[("TEXT",".txt"),],defaultextension = "txt",initialdir=USER_VARIABLES.DATADIR,initialfile=get_date_text(),title="作成するファイル名を設定してください")
+        filename=os.path.splitext(os.path.basename(filepath))[0]
+        pyperclip.copy(filename) #ファイル名はクリップボードにコピーしておく
+        _measurement_manager.file_manager.set_file(filepath=filepath) #filepath=Noneだとダイアログを出してくれる
 
 def set_file_name(filename: str, add_date: bool = True) -> None:
     logger.warning("関数set_file_nameは非推奨です。 set_fileを使ってください")
