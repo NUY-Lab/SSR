@@ -14,9 +14,8 @@ from pathlib import Path
 from typing import List, Optional, Union
 
 import plot
-import pyperclip
 from basedata import BaseData
-from utility import MyException, ask_save_filename, get_date_text
+from utility import MyException
 from variables import USER_VARIABLES
 
 logger = getLogger(__name__)
@@ -103,16 +102,14 @@ class FileManager:  # ファイルの管理
         """ファイルのパス"""
         return self.__fileIO.filepath if self.__fileIO is not None else None
 
-    def set_file(self,filepath=None):
-        if filepath is None:
-            self.__fileIO=FileManager.FileIO(filepath=ask_save_filename(filetypes=[("TEXT",".txt"),],defaultextension = "txt",initialdir=USER_VARIABLES.DATADIR,initialfile=get_date_text(),title="作成するファイル名を設定してください"))
-        else:
-            self.__fileIO=FileManager.FileIO(filepath=filepath)
+    def set_file(self,filepath:Path):
+
+        self.__fileIO=FileManager.FileIO(filepath=filepath)
 
         if self.__prewrite!="":
             self.__fileIO.write(self.__prewrite)
 
-        pyperclip.copy(os.path.basename(self.__fileIO.filepath)) #ファイル名はクリップボードにコピーしておく
+        
 
 
     def save(self, *args: Union[tuple, str]) -> None:
