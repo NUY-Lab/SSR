@@ -265,8 +265,8 @@ class MeasurementManager:
             self.macro.start()
         if (not self._dont_make_file) and (self.file_manager.filepath is None):
             self.file_manager.set_file(filepath=f"{USER_VARIABLES.DATADIR}/{get_date_text()}.txt")
-
-        logger.info(f"file: {self.file_manager.filepath.name}")
+        if not self._dont_make_file:
+            logger.info(f"file: {self.file_manager.filepath.name}")
         self.plot_agency.run_plot_window()  # グラフウィンドウの立ち上げ
 
         while msvcrt.kbhit():  # 既に入っている入力は消す
