@@ -33,7 +33,7 @@ def update():
             continue
 
         try:
-            ans=inst.query()
+            ans=inst.query(command)
             print(f"返り値 >> {ans}\n")
         except:
             print("返り値はありません\n")
