@@ -118,9 +118,11 @@ def split(filepath):
     #以下ではresistance_besideの間隔を一定にした上で平均化によってなめらかにする
     fitting_curve=interp1d(resistance_beside,temperature_center) 
 
-    min_res_beside=new_resistance_beside,0,math.ceil(resistance_beside[0]*20)/20
-    max_res_beside=new_resistance_beside,math.floor(resistance_beside[-1]*20)/20
-    new_resistance_beside=np.linspace(min_res_beside,max_res_beside,int((max_res_beside-min_res_beside)*20))#新しい抵抗値のリスト
+
+
+    min_res_beside=math.ceil(resistance_beside[0]*10)/10
+    max_res_beside=math.floor(resistance_beside[-1]*10)/10
+    new_resistance_beside=np.linspace(min_res_beside,max_res_beside,int((max_res_beside-min_res_beside)*10))#新しい抵抗値のリスト
     
 
     new_temperature_center=smoothen(fitting_curve(new_resistance_beside),2)
