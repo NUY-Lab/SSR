@@ -31,7 +31,12 @@ def update():
         command= input()
         if command == "":
             continue
-        inst.write()
-        time.sleep(1)
-        print("送信しました...動作しているか確認してください\n")
+
+        try:
+            ans=inst.query()
+            print(f"返り値 >> {ans}\n")
+        except:
+            print("返り値はありません\n")
+        
+        
 
