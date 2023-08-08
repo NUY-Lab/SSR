@@ -121,6 +121,8 @@ def split(filepath):
     min_res_beside=math.ceil(resistance_beside[0])
     max_res_beside=math.floor(resistance_beside[-1])
     new_resistance_beside=np.linspace(min_res_beside,max_res_beside,(max_res_beside-min_res_beside)*5)#新しい抵抗値のリスト
+    new_resistance_beside.insert(0,math.ceil(resistance_beside[0]*20)/20) #端っこの値を追加
+    new_resistance_beside.append(math.floor(resistance_beside[-1]*20)/20)
 
     new_temperature_center=smoothen(fitting_curve(new_resistance_beside),2)
 
