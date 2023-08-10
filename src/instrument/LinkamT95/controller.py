@@ -11,7 +11,7 @@ from logging import getLogger
 from typing import List, Tuple
 
 from measure.error import SSRError
-from measure.masurement import MeasurementManager, MeasurementState
+from measure.measurement import MeasurementManager, MeasurementState
 
 from .io import LinkamT95IO
 

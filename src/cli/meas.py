@@ -9,7 +9,7 @@ import win32api
 import win32con
 
 from measure.macro import get_prev_macro_name, save_current_macro_name
-from measure.masurement import Measurement
+from measure.measurement import Measurement
 from measure.setting import (
     get_prev_setting_path,
     load_settings,

@@ -1,11 +1,11 @@
 import time
 
 from measure.basedata import BaseData  # 測定データの基本クラス
-from measure.masurement import plot  # ウィンドウに点をプロット 引数は float,float
-from measure.masurement import print  # ターミナルへのログ出力
-from measure.masurement import save  # ファイルに保存 引数はtuple
-from measure.masurement import set_filename  # ファイル名をセットする 引数はstring 引数なしだとダイアログを出す
-from measure.masurement import set_plot_info  # プロット情報入力
+from measure.measurement import plot  # ウィンドウに点をプロット 引数は float,float
+from measure.measurement import print  # ターミナルへのログ出力
+from measure.measurement import save  # ファイルに保存 引数はtuple
+from measure.measurement import set_filename  # ファイル名をセットする 引数はstring 引数なしだとダイアログを出す
+from measure.measurement import set_plot_info  # プロット情報入力
 
 
 # 測定するデータとその単位を指定
