@@ -291,27 +291,6 @@ def create_file(filepath: str, data: list[list], label=""):
         f.write(array2d_to_text(data))
 
 
-def TMR_bunkatsu(
-    filepath,
-    T_index,
-    f_index,
-    freq_num=16,
-    sample_and_cutout_num=(150, 120),
-    step=10,
-    threshold=0,
-):
-    logger.warning("TMR_bunkatsuは非推奨です。TMR_splitを使用してください。")
-    TMR_split(
-        filepath,
-        T_index,
-        f_index,
-        freq_num,
-        sample_and_cutout_num,
-        step,
-        threshold,
-    )
-
-
 def TMR_split(
     filepath: str,
     T_index: int,
@@ -327,7 +306,6 @@ def TMR_split(
 
     Parameter
     ---------
-
     filepath: str
         分割元のファイルのパス
     T_index: int
@@ -338,7 +316,8 @@ def TMR_split(
         周波数の分割数
     sample_and_cutout_num: (int, int)
         1つ目のintは温度変化を判定するために使用するプロット点の数
-        2つ目のintは昇温降温を判断するための閾値(N個の点それぞれについて前の点より温度が上がっていれば+1,下がっていれば-1,絶対値がthreshold以下なら0で合計値がこのint以上なら昇温または降温とする)
+        2つ目のintは昇温降温を判断するための閾値(N個の点それぞれについて前の点より温度が上がっていれば+1,
+        下がっていれば-1,絶対値がthreshold以下なら0で合計値がこのint以上なら昇温または降温とする)
     step: int
         昇温降温判定でstep分離れたプロットと温度比較を行う.
     threshold: float

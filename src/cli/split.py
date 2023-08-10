@@ -2,7 +2,6 @@ import logging
 import os
 
 from measure.macro import load_split_macro
-from scripts.macro import get_macro_split
 
 from .rich import console
 from .tkinter import ask_open_filename

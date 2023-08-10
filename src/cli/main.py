@@ -28,6 +28,7 @@ def init_win() -> None:
 
 
 def main() -> None:
+    dev = False
     mode = ""
     if len(sys.argv) > 1:
         # devフラグがあったらログレベルをDEBUGにする
