@@ -33,6 +33,8 @@ def load_settings(path: Path) -> tuple[Path, Path, Path | None]:
 
     with path.open(encoding="utf-8") as f:
         for l in f:
+            if l.strip() == "":
+                continue
             [key, value] = l.split("=")
             match key.strip():
                 case "DATADIR":

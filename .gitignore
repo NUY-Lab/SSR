@@ -1,8 +1,8 @@
 # python
 __pycache__/
 .venv/
+.pytest_cache/
 
 # SSR
-/test/
 .ssr/
 *.log

@@ -91,7 +91,7 @@ def load_macro(path: Path) -> MeasureMacro:
         on_command = None
         UNDIFINE_WARNING.append("on_command")
     elif target.on_command.__code__.co_argcount != 1:
-        logger.error(target.__name__ + ".on_commandには引数を設定してはいけません")
+        logger.error(target.__name__ + ".on_commandには引数commandだけを設定しなければいけません")
         UNDIFINE_ERROR = True
     else:
         on_command = target.on_command
@@ -143,7 +143,7 @@ def load_split_macro(path: Path) -> ModuleType:
     return target
 
 
-def load_recalculate_macro(path: Path) -> Path:
+def load_recalculate_macro(path: Path) -> ModuleType:
     """マクロファイルを再計算マクロに変換"""
     target = load_module(path)
 

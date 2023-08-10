@@ -119,6 +119,10 @@ def finish() -> None:
     _measurement.measuring = False
 
 
+def _state() -> "State":
+    return _measurement.state
+
+
 class State(enum.Flag):
     READY = enum.auto()
     START = enum.auto()
