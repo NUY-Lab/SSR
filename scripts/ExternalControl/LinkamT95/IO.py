@@ -10,7 +10,7 @@ import serial
 from serial import Serial
 from utility import MyException
 
-logger = getLogger(__name__)
+logger = getLogger(f"SSR.{__name__}")
 
 
 class LinkamT95Error(MyException):

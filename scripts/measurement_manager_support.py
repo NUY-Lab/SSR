@@ -18,7 +18,7 @@ from basedata import BaseData
 from utility import MyException
 from variables import USER_VARIABLES
 
-logger = getLogger(__name__)
+logger = getLogger(f"SSR.{__name__}")
 
 
 class MeasurementStep(Flag):

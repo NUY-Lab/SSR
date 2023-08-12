@@ -6,7 +6,7 @@ from typing import Optional
 from utility import MyException, ask_open_filename, get_encode_type
 from variables import SHARED_VARIABLES, USER_VARIABLES
 
-logger = getLogger(__name__)
+logger = getLogger(f"SSR.{__name__}")
 
 
 class DefineFileError(MyException):
