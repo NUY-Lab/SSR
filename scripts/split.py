@@ -10,7 +10,7 @@ from typing import List
 import utility as util
 from utility import MyException
 
-logger = getLogger(__name__)
+logger = getLogger(f"SSR.{__name__}")
 
 
 class SplitError(MyException):

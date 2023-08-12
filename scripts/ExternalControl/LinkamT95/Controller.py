@@ -14,7 +14,7 @@ from ExternalControl.LinkamT95.IO import LinkamT95IO
 from measurement_manager import MeasurementManager, MeasurementState
 from utility import MyException
 
-logger = getLogger(__name__)
+logger = getLogger(f"SSR.{__name__}")
 
 
 class LinkamT95ControllerError(MyException):

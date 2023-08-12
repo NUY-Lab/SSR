@@ -8,7 +8,7 @@ from scipy import interpolate
 from utility import MyException, get_encode_type
 from variables import SHARED_VARIABLES
 
-logger = getLogger(__name__)
+logger = getLogger(f"SSR.{__name__}")
 
 
 class CalibrationError(MyException):

@@ -18,10 +18,20 @@
     },
     "sharedFileHandler": {
       "class": "logging.FileHandler",
-      "level": "DEBUG",
+      "level": "INFO",
       "formatter": "default",
       "filename": "",
       "encoding": "utf-8"
+    },
+    "SSRDebugFileHandler": {
+      "class": "logging.FileHandler",
+      "level": "DEBUG",
+      "formatter": "default",
+      "filename": "",
+      "encoding": "utf-8",
+      "filters": [
+        "onlyDebug_filter"
+      ]
     }
   },
   "root": {
@@ -30,5 +40,18 @@
       "consoleHandler",
       "sharedFileHandler"
     ]
+  },
+  "loggers": {
+    "SSR": {
+      "level": "DEBUG",
+      "handlers": [
+        "SSRDebugFileHandler"
+      ]
+    }
+  },
+  "filters": {
+    "onlyDebug_filter": {
+      "()": ""
+    }
   }
 }

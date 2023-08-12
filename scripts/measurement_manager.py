@@ -24,7 +24,7 @@ from measurement_manager_support import (
 from utility import ask_save_filename, get_date_text
 from variables import USER_VARIABLES
 
-logger = getLogger(__name__)
+logger = getLogger(f"SSR.{__name__}")
 
 
 def start_macro(macro) -> None:

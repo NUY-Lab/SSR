@@ -10,7 +10,7 @@ from types import ModuleType
 from utility import MyException, ask_open_filename
 from variables import SHARED_VARIABLES, USER_VARIABLES
 
-logger = getLogger(__name__)
+logger = getLogger(f"SSR.{__name__}")
 
 
 class MacroError(MyException):
