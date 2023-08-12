@@ -8,7 +8,7 @@ from typing import Union
 import pyvisa
 from utility import MyException
 
-logger = getLogger(__name__)
+logger = getLogger(f"SSR.{__name__}")
 
 
 class USBError(MyException):

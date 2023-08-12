@@ -24,7 +24,7 @@ from variables import USER_VARIABLES
 
 from log import set_user_log, setlog
 
-logger = getLogger(__name__)
+logger = getLogger(f"SSR.{__name__}")
 
 
 def main() -> None:
