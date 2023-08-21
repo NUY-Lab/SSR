@@ -40,7 +40,7 @@ def finish() -> None:
     _measurement_manager.is_measuring = False
 
 
-def set_file(filename: str = None, add_date: bool = True):
+def set_file(filename: str = None, add_date: bool = True,openfolder=None):
     """ファイル名をセット
 
     Parameter
@@ -59,7 +59,7 @@ def set_file(filename: str = None, add_date: bool = True):
             filepath=Path(f"{USER_VARIABLES.DATADIR}/{filename}")
         _measurement_manager.file_manager.set_file(filepath=filepath) #データフォルダの下にファイルを作る
     else:
-        filepath=ask_save_filename(filetypes=[("TEXT",".txt"),],defaultextension = "txt",initialdir=USER_VARIABLES.DATADIR,initialfile=get_date_text(),title="作成するファイル名を設定してください")
+        filepath=ask_save_filename(filetypes=[("TEXT",".txt"),],defaultextension = "txt",initialdir=USER_VARIABLES.DATADIR if openfolder is None else openfolder,initialfile=get_date_text(),title="作成するファイル名を設定してください")
         filename=os.path.splitext(os.path.basename(filepath))[0]
         pyperclip.copy(filename) #ファイル名はクリップボードにコピーしておく
         _measurement_manager.file_manager.set_file(filepath=filepath) #filepath=Noneだとダイアログを出してくれる
@@ -100,9 +100,9 @@ def set_label(label: str) -> None:
     _measurement_manager.file_manager.write(label + "\n")
 
 
-def write_file(text: str) -> None:
+def write_file(text: str,is_flush=True) -> None:
     """ファイルに書き込み"""
-    _measurement_manager.file_manager.write(text)
+    _measurement_manager.file_manager.write(text,is_flush=is_flush)
 
 
 def set_plot_info(
@@ -159,7 +159,7 @@ def save_data(*data: Union[tuple, str]) -> None:
     save(*data)
 
 
-def save(*data: Union[tuple, str]) -> None:  # データ保存
+def save(*data: Union[tuple, str],is_flush=True) -> None:  # データ保存
     """引数のデータをファイルに書き込む.
 
     この関数が呼ばれるごとに書き込みの反映( __savefile.flush)をおこなっているので途中で測定が落ちてもそれまでのデータは残るようになっている.
@@ -170,13 +170,16 @@ def save(*data: Union[tuple, str]) -> None:  # データ保存
 
     data : tuple or string
         書き込むデータ
+    is_flush :bool
+            Falseにすると書き込みが反映されない (測定を中断したときにデータが消える)
+            そのかわりに早くなるかも？
     """
     if not bool(
         _measurement_manager.state.current_step
         & (MeasurementStep.UPDATE | MeasurementStep.END)
     ):
         logger.warning(sys._getframe().f_code.co_name + "はupdateもしくはend関数内で用いてください")
-    _measurement_manager.file_manager.save(*data)
+    _measurement_manager.file_manager.save(*data,is_flush=is_flush)
 
 
 plot_data_flag = False
