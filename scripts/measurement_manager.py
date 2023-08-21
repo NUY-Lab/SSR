@@ -223,11 +223,6 @@ def no_plot() -> None:
         logger.warning(sys._getframe().f_code.co_name + "はstart関数内で用いてください")
     _measurement_manager.plot_agency = PlotAgency.NoPlotAgency()
 
-def no_command() -> None:
-    """コマンドを受け取らないようにして速度の限界を目指す"""
-    if _measurement_manager.state.current_step != MeasurementStep.START:
-        logger.warning(sys._getframe().f_code.co_name + "はstart関数内で用いてください")
-    _measurement_manager.command_receiver = CommandReceiver.NoCommandReceiver()
 
 
 class MeasurementManager:
