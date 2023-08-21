@@ -67,6 +67,8 @@ def start():#最初に1回だけ実行される処理
     electrode_area=float(input("s is > ")) #電極面積入力
     depth=float(input("d is > ")) #試料の厚さ入力
 
+    LCR.write("APER LONG") #測定モードをLONGに
+
     volt=LCR.query("VOLT?").replace(" ","") # LCRの電圧を取得
     label="s="+str(electrode_area)+"[mm2], d="+str(depth)+"[mm], V="+volt+"[V]"#ファイルの先頭につけるラベル
     
