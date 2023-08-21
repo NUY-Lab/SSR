@@ -80,7 +80,7 @@ class FileManager:  # ファイルの管理
             self.__filepath=Path(filepath)
             self.__file = open(filepath,"x",encoding="utf-8")
 
-        def _write(self,text) -> None:
+        def write(self,text) -> None:
             self.__file.write(text)
         def flush(self):
             self.__file.flush()
