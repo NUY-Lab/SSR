@@ -110,6 +110,8 @@ class FileManager:  # ファイルの管理
         if self.__prewrite!="":
             self.__fileIO.write(self.__prewrite)
             self.__fileIO.flush()
+
+    
             
 
         
@@ -208,6 +210,21 @@ class CommandReceiver:  # コマンドの入力を受け取るクラス
         command = self.__command
         self.__command = None
         return command
+    
+    class NoCommandReceiver:
+        """
+        CommandReceiverのダミークラス
+        何も動作しないので速度が早くなるはず！
+        """
+        def __init__(self) -> None:
+            """グラフを表示しないモード"""
+
+            def void(*args):
+                """何も返さない関数"""
+                return None
+
+            self.get_command = void
+            self.initialize = void
 
 
 class PlotAgency:
