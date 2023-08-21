@@ -80,8 +80,9 @@ class FileManager:  # ファイルの管理
             self.__filepath=Path(filepath)
             self.__file = open(filepath,"x",encoding="utf-8")
 
-        def write(self,text) -> None:
+        def _write(self,text) -> None:
             self.__file.write(text)
+        def flush(self):
             self.__file.flush()
 
         def close(self):
@@ -108,12 +109,23 @@ class FileManager:  # ファイルの管理
 
         if self.__prewrite!="":
             self.__fileIO.write(self.__prewrite)
+            self.__fileIO.flush()
+            
 
         
 
 
-    def save(self, *args: Union[tuple, str]) -> None:
-        """データ保存"""
+    def save(self, *args: Union[tuple, str],is_flush=True) -> None:
+        """
+        データ保存
+        
+        Parameter
+        args: Union[tuple, str]
+            保存するデータ。主にbasedata.pyのBaseDataを継承したものを引数に取ることを想定
+        is_flush :bool
+            Falseにすると書き込みが反映されない (測定を中断したときにデータが消える)
+            そのかわりに早くなるかも？
+        """
 
         text = ""
 
@@ -125,8 +137,10 @@ class FileManager:  # ファイルの管理
             text += self.delimiter
         text = text[0:-1] + "\n"
         self.__fileIO.write(text)
+        if is_flush:
+            self.__fileIO.flush()
 
-    def write(self, text: str) -> None:
+    def write(self, text: str,is_flush=True) -> None:
         """ファイルへの書き込み
 
         ファイルがまだ作成されていなければ別の場所に一次保存
@@ -135,6 +149,8 @@ class FileManager:  # ファイルの管理
             self.__prewrite += text
         else:
             self.__fileIO.write(text)
+            if is_flush:
+                self.__fileIO.flush()
 
     def close(self) -> None:
         """ファイルを閉じる"""
