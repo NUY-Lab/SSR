@@ -9,6 +9,9 @@ from ExternalControl.LinkamT95.Controller import (
 )
 from filesplitter import FileSplitter  # ファイルを分割するクラス
 from measurement_manager import finish  # 測定の終了 引数なし
+from measurement_manager import (
+    no_command,  # コマンド入力を不可にするかわりに限界まで測定速度を上げられる (0.03sくらいのロスがなくなる)
+)
 from measurement_manager import no_plot  # プロットしないときに使う
 from measurement_manager import plot  # ウィンドウに点をプロット 引数は float,float
 from measurement_manager import save  # ファイルに保存 引数はtuple
