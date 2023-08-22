@@ -1,3 +1,4 @@
+import math
 import statistics
 import time
 from collections import deque
@@ -10,6 +11,7 @@ from ExternalControl.GPIB.GPIB import (
 from ExternalControl.LinkamT95.Controller import (
     LinkamT95AutoController,  # リンカムの操作 # inst=LinkamT95AutoController() でインスタンス作成 # inst.connect(<COMPORTアドレス>)で接続(COMPORTアドレスはデバイスマネージャーからわかる) # inst.add_sequence(<コマンド>)でコマンド送信 # answer = inst.query(<コマンド>)でコマンド送信&読み取り
 )
+from filesplitter import FileSplitter
 from measurement_manager import finish  # 測定の終了 引数なし
 from measurement_manager import no_plot  # プロットしないときに使う
 from measurement_manager import plot  # ウィンドウに点をプロット 引数は float,float
@@ -31,7 +33,7 @@ class Data(BaseData):
     permittivity_image:""
     tan_delta:""
     resistance_Pt:"[Ohm]"
-    step:""
+    heating_cooling:""
 
 
 electrode_area:float #電極面積
@@ -64,8 +66,8 @@ def start():#最初に1回だけ実行される処理
     set_file() #ファイル作成
 
     #電極面積, 試料の厚さを入力
-    electrode_area=float(input("s is > ")) #電極面積入力
-    depth=float(input("d is > ")) #試料の厚さ入力
+    electrode_area=float(input("s[mm^2] is > ")) #電極面積入力
+    depth=float(input("d[mm] is > ")) #試料の厚さ入力
 
     LCR.write("APER LONG") #測定モードをLONGに
 
@@ -93,7 +95,6 @@ def start():#最初に1回だけ実行される処理
 
 def update():#測定中に何度も実行される処理
     data=get_data()#データ取得
-    check_step(data)
     if data.time>5*60*60: #5時間経ったら勝手に終了するように
         return False
     save(data)#セーブ
@@ -126,30 +127,50 @@ def get_data(): #実際に測定してる部分
   
     count=(count+1)%16 #countを1進める(16までいったら0に戻す)
     
-
+    hc=heating_cooling_checker.check(elapsed_time,temperature) # heatingかcoolingかを判定
     #データに中身を入れて返す
-    return Data(time=elapsed_time,frequency=frequency,temperature=temperature,capacitance=capacitance,permittivity_real=permittivity_real,permittivity_image=permittivity_image,tan_delta=tan_delta,resistance_Pt=resistnce)
+    return Data(time=elapsed_time,frequency=frequency,temperature=temperature,capacitance=capacitance,permittivity_real=permittivity_real,permittivity_image=permittivity_image,tan_delta=tan_delta,resistance_Pt=resistnce,heating_cooling=hc)
 
 
 def split(filepath):#測定ファイルを周波数分割
-    TMR_split(filepath,T_index=2,f_index=1,freq_num=16,sample_and_cutout_num=(150,120),step=30,name_temperaturesplitfolder=None,name_frequencesplitfile=None,step=-1)
+    FileSplitter(filepath=filepath,skip_rows=2,delimiter=",")\
+        .column_value_split(colum_num=8,do_count=False,filename_formatter=None)\
+        .column_value_split(colum_num=1,do_count=False,filename_formatter=lambda x : "1E{:.2f}Hz".format(math.log10(x)))\
+        .create(delimiter="\t")
 
 
-step=0
-state=0
-pre_data:Data=None
-TIME_INTERVAL=20 #20秒ごとにチェック(間隔が短すぎるとうまくいかない。長すぎると判定が遅れてしまう)
-T_SPEED_THREAHOLD=0.08 # [K/secound] を超えたら速度変化ありとする 今回は20秒で1.6℃変化する速度に対応
-def check_step(data:Data): #温度変化を検知して温度スイープに番号をつける部分
-    global step,pre_data,state
-    if data.time - pre_data.time >TIME_INTERVAL:
-        T_speed=(data.temperature-pre_data.temperature)/(data.time-pre_data.time)#温度速度を計算
-        now_state= 0 if abs(T_speed)<T_SPEED_THREAHOLD \
-              else ( 1 if T_speed > 0 else -1) #温度変化が一定以上なければ0. あれば1か-1
+class HeatingCooligChecker:
+    """温度変化をチェックするクラス"""
+    TIME_INTERVAL=20 #20秒ごとにチェック(間隔が短すぎるとうまくいかない。長すぎると判定が遅れてしまう)
+    T_SPEED_THREAHOLD=0.08 # [K/secound] を超えたら温度変化ありとする 今回は20秒で1.6℃変化する速度に対応
+    def __init__(self) -> None:
+        self.__step=0
+        self.__pre_time=None
+        self.__pre_temp=None
+        self.__pre_judge="first"
+    def check(self,time:float,temperature:float)->str:
+        if self.__pre_time is None: #最初はpre_timeとpre_tempがNoneなのでそのまま値を入れる
+            self.__pre_time=time
+            self.__pre_temp=temperature
+
+
+        judge=None
+        if time - self.__pre_time > self.TIME_INTERVAL: # 前回からself.TIME_INTERVAL以上の時間が経過した場合
+            T_speed=(temperature-self.__pre_temp)/(time-self.__pre_time) #温度変化速度を計算
+            if abs(T_speed) > self.T_SPEED_THREAHOLD: #温度変化が一定以上なら judgeに値を入れる
+                judge = f"{'heating' if T_speed > 0 else 'cooling'}"
+                  
+            self.__pre_time=time #新しい時間と温度の値を入れる
+            self.__pre_temp=temperature
         
-        if state !=now_state and state !=0: #温度変化が終了した地点でステップを進める
-            step+=1
-        state=now_state
+        if judge is not None: 
+            if judge != self.__pre_judge: #前回とheating,coolingが変化していればstepを増やす
+                self.__step +=1
+        else:
+            judge = self.__pre_judge #前回から時間が経過していない場合や温度変化がない場合には前回の値を入れる
 
-        pre_data=data
-    data.step=step
+        self.__pre_judge=judge 
+
+        return f"{self.__step}_{judge}"
+
+heating_cooling_checker=HeatingCooligChecker()
