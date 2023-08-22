@@ -142,7 +142,7 @@ def split(filepath):#測定ファイルを周波数分割
 class HeatingCooligChecker:
     """温度変化をチェックするクラス"""
     TIME_INTERVAL=20 #20秒ごとにチェック(間隔が短すぎるとうまくいかない。長すぎると判定が遅れてしまう)
-    T_SPEED_THREAHOLD=0.08 # [K/secound] を超えたら温度変化ありとする 今回は20秒で1.6℃変化する速度に対応
+    T_SPEED_THREAHOLD=0.08 # [K/second] を超えたら温度変化ありとする 今回は20秒で1.6℃変化する速度に対応
     def __init__(self) -> None:
         self.__step=0
         self.__pre_time=None
