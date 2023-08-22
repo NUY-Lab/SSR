@@ -98,7 +98,7 @@ def update():#測定中に何度も実行される処理
     if data.time>5*60*60: #5時間経ったら勝手に終了するように
         return False
     save(data)#セーブ
-    plot(data.temperature,data.permittivity_real)#プロット
+    plot(data.temperature,data.permittivity_real,label=count)#プロット labelに値を入れることで色分けできる
 
 
 def get_data(): #実際に測定してる部分
