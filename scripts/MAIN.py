@@ -140,6 +140,7 @@ def split_only() -> None:
     logger.info(f"file: {filePath}")
     target.split(filePath)
     # 画面が閉じないようにinputをいれておく
+    logger.info("finish splitting ... ")
     input()
 
 
