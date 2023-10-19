@@ -79,8 +79,17 @@ class GPIBController:
             raise GPIBError("write()を呼ぶより前に機器に接続してください")
         self._instrument.write(command)
 
-    def query(self, command):
-        """機器に書き込みして読み取り"""
+    def query(self, command,remove_return=True):
+        """
+        機器に書き込みして読み取り
+        
+        Parameters
+        -------------
+        command: str
+            機器に送信するコマンド
+        remove_return : bool
+            帰ってきた文字列から改行記号を抜くかどうか
+        """
         if self._instrument is None:
             raise GPIBError("query()を呼ぶより前に機器に接続してください")
-        return self._instrument.query(command)
+        return self._instrument.query(command) if not remove_return else self._instrument.query(command).replace("\n","")
