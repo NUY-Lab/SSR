@@ -13,14 +13,14 @@ from ExternalControl.LinkamT95.Controller import (
 )
 from filesplitter import FileSplitter
 from measurement_manager import finish  # 測定の終了 引数なし
-from measurement_manager import no_plot  # プロットしないときに使う
-from measurement_manager import plot  # ウィンドウに点をプロット 引数は float,float
-from measurement_manager import save  # ファイルに保存 引数はtuple
-from measurement_manager import set_file  # ファイル名をセットする 引数はstring 引数なしだとダイアログを出す
+from measurement_manager import no_plot  # プロットしないときに使う(高速化するときなど)
+from measurement_manager import plot  # ウィンドウに点をプロット 引数は float(X座標),float(Y座標)
+from measurement_manager import save  # ファイルに保存 引数はtupleもしくはDataクラスの変数
+from measurement_manager import set_file  # ファイル名をセットする 引数はstring 引数なしだとファイル保存ダイアログを出す
 from measurement_manager import set_label  # ファイルの先頭にラベル行をいれる
-from measurement_manager import set_plot_info  # プロット情報入力
-from measurement_manager import write_file  # ファイルへの書き込み引数は string
-from split import TMR_split
+from measurement_manager import set_plot_info  # プロット情報入力 (対数軸にするかなど)
+from measurement_manager import write_file  # ファイルへの書き込み 引数はstring (save関数と似てる)
+from split import TMR_split  # 簡易的なファイル分割ができる関数
 
 
 #測定するデータの型とその単位を定義
@@ -43,7 +43,7 @@ count=0 #今どの周波数で測定するのかを決める数字
 
 ADRESS_LCR=7 #LCRのGPIB番号
 ADRESS_Keithley=11 # Keithley2000のGPIB番号
-COMPORT_LinkamT95="COM3" #Linkamのシリアルポート番号
+COMPORT_LinkamT95="COM3" #Linkamのシリアルポート番号 (シリアルポートの確認はデバイスマネージャーからできる(はず))
 
 #測定に使う機械はここで宣言しておく
 LCR=GPIBController()
@@ -77,7 +77,7 @@ def start():#最初に1回だけ実行される処理
     set_label(label + "\n" + Data.to_label()) # ファイル先頭にラベルを付けておく
     calibration.set_shared_calib_file() #キャリブレーションの準備(shared_settings/calibration_fileフォルダから温度補正情報を取得)
     set_plot_info(line=False,xlog=False,ylog=False,renew_interval=1,flowwidth=0,legend=False) #プロット条件指定
-    start_time=time.time()
+    start_time=time.time() #スタート時刻を取得
 
 
     #Keithley2000の初期設定
@@ -96,7 +96,7 @@ def start():#最初に1回だけ実行される処理
 def update():#測定中に何度も実行される処理
     data=get_data()#データ取得
     if data.time>5*60*60: #5時間経ったら勝手に終了するように
-        return False
+        return False # Falseを返すと終了する. それ以外のときはupdateを繰り返し続ける
     save(data)#セーブ
     plot(data.temperature,data.permittivity_real,label=count)#プロット labelに値を入れることで色分けできる
 
@@ -133,6 +133,9 @@ def get_data(): #実際に測定してる部分
 
 
 def split(filepath):#測定ファイルを周波数分割
+    #1行目はファイル読み込み. skip_rowsは読み飛ばしの行数, delimiterは区切り文字(タブなら"\t") \は改行記号
+    #2,3行目はファイル分割. colum_numは分割に使う列,指定した列の値ごとにファイルを分割する. do_countで番号つけてfilename_formatterでファイル名を整形する
+    #4行目はファイル作成
     FileSplitter(filepath=filepath,skip_rows=2,delimiter=",")\
         .column_value_split(colum_num=8,do_count=False,filename_formatter=None)\
         .column_value_split(colum_num=1,do_count=False,filename_formatter=lambda x : "1E{:.2f}Hz".format(math.log10(x)))\
@@ -140,7 +143,13 @@ def split(filepath):#測定ファイルを周波数分割
 
 
 class HeatingCooligChecker:
-    """温度変化をチェックするクラス"""
+    """
+    温度変化をチェックするクラス
+    温度変化判定プログラムの設計上、温度変化直後の時間は判定できないのでデータが切れてしまう。
+    それが嫌な人は別の判定プログラムを作ってください
+    (例えば、このプログラムではheating → coolingの変化を検知したときに heating,coolingを変えるが、
+    温度変化が止まった時点でheatingとcoolingを変えることでデータを切ることなく判定できる。そのかわりプログラムの柔軟性は落ちる。)
+    """
     TIME_INTERVAL=20 #20秒ごとにチェック(間隔が短すぎるとうまくいかない。長すぎると判定が遅れてしまう)
     T_SPEED_THREAHOLD=0.08 # [K/second] を超えたら温度変化ありとする 今回は20秒で1.6℃変化する速度に対応
     def __init__(self) -> None:
@@ -149,6 +158,7 @@ class HeatingCooligChecker:
         self.__pre_temp=None
         self.__pre_judge="first"
     def check(self,time:float,temperature:float)->str:
+        """温度変化判定"""
         if self.__pre_time is None: #最初はpre_timeとpre_tempがNoneなのでそのまま値を入れる
             self.__pre_time=time
             self.__pre_temp=temperature

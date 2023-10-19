@@ -68,6 +68,19 @@ class FileManager:  # ファイルの管理
         書き込んだファイルのパス
     delimiter:str
         区切り文字
+
+
+
+    Methods
+    -----------
+    set_file(filepath:Path)->None:
+        ファイルのセット
+    save(*args: Union[tuple, str],is_flush=True)->None:
+        データのセーブ
+    write(text: str,is_flush=True) -> None:
+        ファイルへの書き込み
+    close() -None:
+        ファイルを閉じる
     """
 
     class FileError(MyException):

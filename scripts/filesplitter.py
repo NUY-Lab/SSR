@@ -15,6 +15,7 @@ FileSplitter(filepath="all.txt",skip_rows=2,delimiter=",")\ #分割するファ�
     .column_value_split(colum_num=8,filename_formatter=lambda x : f"{x}",do_count=True)\ #8行目(0始まり) の値で分割, カウントをつける
     .column_value_split(colum_num=9,filename_formatter=lambda x : "heating" if x>0 else "cooling",do_count=True)\#9行目(0始まり) の値で分割, カウントをつける
     .column_value_split(colum_num=1,filename_formatter=lambda x : "10E{:.2f}Hz".format(math.log10(x)),do_count=False)\ #1行目(0始まり) の値で分割, カウントをつけない
+    .rename(filename_formatter=lambda data : f"{'heating' if data[9]>0 else 'cooling'}_{data[1]}Hz")\ # 2つ以上の列の値を使ってファイル名を作るときはrename関数を使う
     .create(delimiter="\t") #タブ区切りでファイル作成
 
 """
@@ -39,13 +40,16 @@ class FileSplitter:
             colum_num: int
                 参照する列の番号(0始まり)
 
-            label :str
-                データの値ともにファイル名にするラベル
+            do_count : bool
+                ファイル名の先頭に番号をつけるかどうか
 
+            
+            filename_formatter :ラムダ式
+                colum_numの列の値からファイル名を作成する関数
 
             """
 
-            if len(self.children)>0:
+            if len(self.children)>0: #子供がいる場合は子供のcolumn_value_splitを実行して自身の分割は行わない
                 for child in self.children:
                     child.column_value_split(colum_num,filename_formatter,do_count)
                 return
@@ -90,7 +94,15 @@ class FileSplitter:
                 self.children.append(nf)
             
         def create(self,folder_path:Path,delimiter,label):
+            """
+            ファイル作成
+            子供がいる場合には子供のcreateを作動させて連鎖的にファイルを作成する
 
+            Parameters
+            ----------
+            delimiter : str
+                出力ファイルの区切り文字
+            """
             if not self.is_root:
                 file_name=(f"{self.count}_" if self.count is not None else "") +self.name
                 if len(self.children)>0:
@@ -108,6 +120,23 @@ class FileSplitter:
             if len(self.children)>0:
                 for child in self.children:
                     child.create(folder_path=folder_path,delimiter=delimiter,label=label)
+        
+        def rename(self,filename_formatter):
+            """
+            ファイル名を変更する
+            変更するのは末端のファイル(子供のいないファイル)のみ
+
+            Parameters
+            ----------------
+            filename_formatter : ファイル名を決める関数 引数は1行目のデータ配列
+            """
+            if (not self.is_root) and len(self.children)==0:
+                data=self.data[0]
+                self.name=filename_formatter(data)
+
+            if len(self.children)>0:
+                for child in self.children:
+                    child.rename(filename_formatter=filename_formatter)
 
 
                 
@@ -131,20 +160,48 @@ class FileSplitter:
     def column_value_split(self,colum_num,filename_formatter=None,do_count=False) ->FileSplitter:
         """列の値で分割
 
-        Parameters
-        ----------
+            Parameters
+            ----------
 
-        colum_num: int
-            参照する列の番号(0始まり)
+            colum_num: int
+                参照する列の番号(0始まり)
 
-        """
+            do_count : bool
+                ファイル名の先頭に番号をつけるかどうか
+
+            
+            filename_formatter :ラムダ式
+                colum_numの列の値からファイル名を作成する関数
+                デフォルトではcolum_numの列の値がそのままファイル名になる
+
+            """
         self.rootfileinfo.column_value_split(colum_num=colum_num,filename_formatter=filename_formatter,do_count=do_count)
         return self
     
     
     
     def create(self,delimiter=","):
+        """
+        ファイル作成 FileSplitterは最後にこれを呼ばないとファイル作成をしない
+
+        Parameters
+        ----------
+        delimiter : str
+            出力ファイルの区切り文字
+        """
         self.rootfileinfo.create(self.folderpath,delimiter=delimiter,label=self.label)
+
+    def rename(self,filename_formatter):
+        """
+            ファイル名を変更する
+            変更するのは末端のファイルのみ
+
+            Parameters
+            ----------------
+            filename_formatter : ファイル名を決める関数 引数は1行目のデータ配列
+        """
+        self.rootfileinfo.rename(filename_formatter=filename_formatter)
+        return self
 
 
 
