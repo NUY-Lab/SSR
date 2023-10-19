@@ -143,28 +143,6 @@ def split_only() -> None:
     logger.info("finish splitting ... ")
     input()
 
-
-def recalculate_only() -> None:
-    logger.info("再計算マクロ選択...")
-    macroPath = ask_open_filename(
-        filetypes=[("pythonファイル", "*.py *.SSR")], title="再計算マクロを選択してください"
-    )
-    sys.path.append(os.path.abspath(macroPath.parent))
-    os.chdir(str(macroPath.parent))
-    logger.info(f"macro: {macroPath.stem}")
-    target = get_macro_recalculate(macroPath)
-
-    logger.info("再計算ファイル選択...")
-    filePath = ask_open_filename(
-        filetypes=[("データファイル", "*.txt *dat")], title="再計算するファイルを選択してください"
-    )
-    logger.info(f"file: {filePath}")
-    recalc(target, filePath)
-
-    # 画面が閉じないようにinputをいれておく
-    input()
-
-
 def setting() -> None:
     """変数のセット"""
     variables.init(Path.cwd())
@@ -189,7 +167,7 @@ if __name__ == "__main__":
 
     # 引数によって測定モードか分割モードかを判定
     while True:
-        if mode in ["MEAS", "SPLIT", "RECALCULATE"]:
+        if mode in ["MEAS", "SPLIT"]:
             break
         mode = input("mode is > ").upper()
 
@@ -201,8 +179,6 @@ if __name__ == "__main__":
             main()
         elif mode == "SPLIT":
             split_only()
-        elif mode == "RECALCULATE":
-            recalculate_only()
     # エラーは全てここでキャッチ
     except MyException as e:
         print("*****************Error*****************")
