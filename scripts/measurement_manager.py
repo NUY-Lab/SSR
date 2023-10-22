@@ -361,7 +361,7 @@ class MeasurementManager:
         endflag = False
         windowclose = False
 
-        thread1 = threading.Thread(target=wait_closewindow)
+        thread1 = threading.Thread(target=wait_closewindow) #スレッドを作成して並行処理を行う (コンソール側の終了を待ちながらグラフウィンドウからの終了も検知できるようにしておく)
         thread1.setDaemon(True)
         thread1.start()
 

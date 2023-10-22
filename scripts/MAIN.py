@@ -18,7 +18,6 @@ import win32con
 from define import read_deffile
 from macro import get_macro, get_macro_recalculate, get_macro_split, get_macropath
 from macro_grammar import macro_grammer_check
-from recalculate import recalc
 from utility import MyException, ask_open_filename
 from variables import USER_VARIABLES
 
@@ -117,13 +116,14 @@ def split_only() -> None:
     os.chdir(str(macroPath.parent))
 
     logger.info(f"macro: {macroPath.stem}")
-    def noop(address):
+
+    def noop(address): #ダミーの関数. こいつは何もしない
         return None
 
     try:
         import GPIB
 
-        # GPIBモジュールの関数を書き換えてGPIBがつながって無くてもエラーが出ないようにする
+        # GPIBモジュールの関数をダミー関数(noop)に書き換えてGPIBがつながって無くてもエラーが出ないようにする
         GPIB.get_instrument = noop
         logger.info("you can't use GPIB.get_instrument in GPyM_bunkatsu")
         logger.info(

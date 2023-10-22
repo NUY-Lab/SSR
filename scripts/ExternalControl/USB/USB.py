@@ -27,7 +27,7 @@ class USBController:
         ----------
 
         address: string or int
-            機器のUSBアドレス (NIMAXで確認できる. 逆にNIMAXで確認できないものは少なくともこのコードでは接続できない)
+            機器のUSBアドレス (NIMAXで確認できる. 逆にNIMAXで確認できないものは少なくともこのコードでは接続できない())
 
         Returns
         -------
