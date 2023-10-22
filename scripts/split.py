@@ -1,5 +1,6 @@
 """
 分割処理に使える関数がある
+filesplitter.pyを作ったのでこっちはもう使わないほうがイイヨ
 """
 import math
 import os

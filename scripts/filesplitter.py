@@ -22,7 +22,31 @@ FileSplitter(filepath="all.txt",skip_rows=2,delimiter=",")\ #分割するファ�
 
 class FileSplitter:
 
-    
+    def __init__(self,filepath,skip_rows,delimiter) -> None:
+        """
+        FileSplitterのコンストラクタ
+
+        Parameters
+        --------------
+        filepath: str
+            分割するファイルのパス
+        skip_rows: int
+            読み飛ばす行数
+        delimiter: str
+            区切り文字
+        """
+        filepath=Path(filepath)
+        with filepath.open(mode="r",encoding="utf-8") as f:
+            self.label=""
+            for i in range(skip_rows):
+                self.label+=f.readline()
+        data=pd.read_csv(filepath,skiprows=skip_rows,delimiter=delimiter,header=None)
+        fileinfo=FileSplitter.FileInfo(name=filepath.stem,data=data.values.tolist(),count=None)
+        fileinfo.is_root=True
+        self.rootfileinfo=fileinfo
+        self.folderpath=filepath.parent
+
+
     class FileInfo:
         def __init__(self,name,data,count) -> None:
             self.count=count
@@ -54,8 +78,7 @@ class FileSplitter:
                     child.column_value_split(colum_num,filename_formatter,do_count)
                 return
                 
-            
-            new_fileinfo_list:List[FileSplitter.FileInfo]=[]
+
             
 
             split_dic:dict[FileSplitter.FileInfo] ={}
@@ -63,35 +86,33 @@ class FileSplitter:
             file_count=0
             max_num=len(self.data)
             while True:
-                row=self.data[count]
-                target_value=row[colum_num]
-                if target_value in split_dic:
+                row=self.data[count] #count行目のデータを取得
+                target_value=row[colum_num] #count行目のデータからcolumn_num列目の値を取得
+                if target_value in split_dic: #target_valueの値がsplit_dicにすでに存在しているならそこに振り分ける
                     split_dic[target_value].data.append(row)
-                else:
+                else: #そうでない場合は新しくFileInfoを作ってdictに登録
+                    #ファイル名を作成
                     if filename_formatter is None:
                         name= f"{target_value}"
                     else:
                         name=filename_formatter(target_value)
                     
-
+                    #新しいFileInfo作成
                     new_fileinfo=FileSplitter.FileInfo(
                         name=name,
                         data=[],
                         count= file_count if do_count else None
                         )
-                    new_fileinfo.data.append(row)
-                    split_dic[target_value]=new_fileinfo
+                    new_fileinfo.data.append(row) 
+                    split_dic[target_value]=new_fileinfo #辞書にFileInfo追加
                     file_count+=1
                 count+=1
                 if count >= max_num:
                     break
             
+            #辞書に登録したFileInfoをchildrenに追加
             for f in split_dic.values():
-                new_fileinfo_list.append(f)
-
-
-            for nf in new_fileinfo_list:
-                self.children.append(nf)
+                self.children.append(f)
             
         def create(self,folder_path:Path,delimiter,label):
             """
@@ -103,20 +124,22 @@ class FileSplitter:
             delimiter : str
                 出力ファイルの区切り文字
             """
-            if not self.is_root:
-                file_name=(f"{self.count}_" if self.count is not None else "") +self.name
-                if len(self.children)>0:
+            if not self.is_root: #rootFile(分割元ファイル)以外ならファイル作成
+                file_name=(f"{self.count}_" if self.count is not None else "") +self.name #ファイル名
+                if len(self.children)>0: # childrenがいるならフォルダを作成
                     folder_path=folder_path/file_name
                     path=folder_path / ("_"+file_name+".txt")
-                else:
+                else:#childrenがいないならフォルダを作成せず、親と同じフォルダにファイルを作成
                     path=folder_path/ (file_name+".txt")
+                path.parent.mkdir(parents=True, exist_ok=True) 
                 
-                path.parent.mkdir(parents=True, exist_ok=True)
+                #データの書き込み
                 with path.open(mode="x",encoding="utf-8") as f:
                     f.write(label)
                     for d in self.data:
                         f.write(delimiter.join([str(dd) for dd in d])+"\n")
 
+            #childrenがいるなら子供のFileInfoのcreate関数を実行
             if len(self.children)>0:
                 for child in self.children:
                     child.create(folder_path=folder_path,delimiter=delimiter,label=label)
@@ -130,11 +153,11 @@ class FileSplitter:
             ----------------
             filename_formatter : ファイル名を決める関数 引数は1行目のデータ配列
             """
-            if (not self.is_root) and len(self.children)==0:
+            if (not self.is_root) and len(self.children)==0: #分割元ファイルでなく、childrenのいないFileInfo(末端のFileInfo)ならrename
                 data=self.data[0]
                 self.name=filename_formatter(data)
 
-            if len(self.children)>0:
+            if len(self.children)>0: #childrenがいれば子供のFileInfoのrenemeを実行
                 for child in self.children:
                     child.rename(filename_formatter=filename_formatter)
 
@@ -145,17 +168,7 @@ class FileSplitter:
         
         
 
-    def __init__(self,filepath,skip_rows,delimiter) -> None:
-        filepath=Path(filepath)
-        with filepath.open(mode="r",encoding="utf-8") as f:
-            self.label=""
-            for i in range(skip_rows):
-                self.label+=f.readline()
-        data=pd.read_csv(filepath,skiprows=skip_rows,delimiter=delimiter,header=None)
-        fileinfo=FileSplitter.FileInfo(name=filepath.stem,data=data.values.tolist(),count=None)
-        fileinfo.is_root=True
-        self.rootfileinfo=fileinfo
-        self.folderpath=filepath.parent
+
     
     def column_value_split(self,colum_num,filename_formatter=None,do_count=False) ->FileSplitter:
         """列の値で分割
@@ -202,12 +215,3 @@ class FileSplitter:
         """
         self.rootfileinfo.rename(filename_formatter=filename_formatter)
         return self
-
-
-
-
-# FileSplitter(filepath="./test/all.txt",delimiter=",",skip_rows=2)\
-#     .column_value_split(colum_num=8,filename_formatter=Formatter_Factory_Light())\
-#         .column_value_split(colum_num=9,filename_formatter=Formatter_Factory_Heat())\
-#             .column_value_split(colum_num=1,filename_formatter=lambda x : "10E{:.2f}Hz".format(math.log10(x)))\
-#                 .create(delimiter="\t")

@@ -5,11 +5,12 @@
 """
 import time
 from multiprocessing import Lock
+from multiprocessing.managers import ListProxy
 from typing import List, Optional
 
 import matplotlib.pyplot as plt
 
-# 色の配列
+# 色の配列(matplotlibのデフォルトでもいいけどすこし見ずらいので自作)
 colormap: tuple[str] = (
     "black",
     "red",
@@ -37,7 +38,7 @@ colormap: tuple[str] = (
 
 
 def start_plot_window(
-    share_list: List[tuple[float, float, str]],
+    share_list: ListProxy[tuple[float, float, str]],
     isfinish: bool,
     lock: Lock,
     plot_info: dict,
@@ -54,12 +55,13 @@ class PlotWindow:
 
     Variables
     ---------
-    share_list :List
+    share_list :multiprocessing.managers.ListProxy
         測定したデータを一時的に保管しておく場所
         非同期処理のため測定とプロットがずれるので, そのためにバッファーのようなものを挟む必要がある
         測定側で測定データをshare_listに詰めていく
         PlotWindowはshare_listのデータを取り込んでプロットした後に中身を消す
         この処理が衝突しないようにlock(セマフォ)をかけて排他制御する
+        最初、このリストは測定側のプロセスで作成され、plotプロセスに渡されて2つのプロセスで共有する
 
     lock:
         プロセス間の共有ファイルを同時に触らないためのロック
@@ -102,7 +104,7 @@ class PlotWindow:
         self.linestyle = None if line else "None"
 
         # プロットウィンドウを表示
-        plt.ion()  # ここはコピペ
+        plt.ion()  # ここはコピペ plotウィンドウを更新するために必要なもの(多分)
         self._figure, self._ax = plt.subplots(figsize=(9, 6))  # ここはコピペ
 
         if xlog:
@@ -114,13 +116,13 @@ class PlotWindow:
         """プロットの処理をループで回す"""
         interval: int = self.interval
         while True:  # 一定時間ごとに更新
-            self.renew_window()
+            self.renew_window() #plotウィンドウの更新
             if self.isfinish.value == 1 or (not plt.get_fignums()):  # 終了していたらbreak
                 break
             time.sleep(interval)
 
-        if plt.get_fignums():
-            plt.show(block=True)
+        if plt.get_fignums(): #ウィンドウが消えているかを判定(多分)
+            plt.show(block=True) #plt.show()を呼ぶことで このプロセスが落ちないようにしている (plotウィンドウを閉じるとこのプロセスは終了する)
 
     _count_label: int = 0
     linedict = {}
@@ -146,7 +148,7 @@ class PlotWindow:
             if label not in self.linedict:  # 最初の一回だけは辞書に登録する
                 xarray = [x_val]
                 yaaray = [y_val]
-                color = colormap[(self._count_label) % len(colormap)]
+                color = colormap[(self._count_label) % len(colormap)] 
                 self._count_label += 1
                 (line,) = self._ax.plot(
                     xarray,
@@ -156,11 +158,11 @@ class PlotWindow:
                     label=label,
                     linestyle=self.linestyle,
                 )  # プロット
-                lineobj = self.LineObj(line, xarray, yaaray)  # 辞書に追加
+                lineobj = self.LineObj(line, xarray, yaaray)  # プロットデータ(lineobj)を辞書に追加 (後でlineobjを呼び出してデータを追加する)
                 self.linedict[label] = lineobj
 
-                if self.legend:
-                    if self._count_label > 20:
+                if self.legend: #凡例をつける (ここの処理はちゃんと試していないからうまく動くかわからない)
+                    if self._count_label > 20: #凡例が20を超えたら2行
                         ncol = 2
                         self._figure.set_size_inches(11.5, 6)
                         self._figure.subplots_adjust(
@@ -219,7 +221,7 @@ class PlotWindow:
                 if yrelim:
                     self._ax.set_ylim(self.min_y, self.max_y)
             else:
-                # 横幅が決まっているときはそれに先頭に合わせて範囲を変更
+                # self.flowwidth>0のときはxの最大値から最大値-flowwidthの範囲を表示 (ここの処理はちゃんと試していないからうまく動くかわからない)
                 xmin = self.max_x - self.flowwidth
                 self._ax.set_xlim(xmin, self.max_x)
                 self._ax.set_ylim(self.min_y, self.max_y)
