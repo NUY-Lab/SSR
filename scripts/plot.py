@@ -38,7 +38,7 @@ colormap: tuple[str] = (
 
 
 def start_plot_window(
-    share_list: ListProxy[tuple[float, float, str]],
+    share_list: ListProxy,#ListProxy[tuple[float, float, str]],
     isfinish: bool,
     lock: Lock,
     plot_info: dict,
