@@ -93,15 +93,23 @@ class BaseData:
 
     @classmethod
     def to_label(cls):
-        """ラベルデータの作成"""
+        """
+        ラベルデータの作成
+        命名的にget_namesの方が良さそうなのでget_namesを使うことを推奨
+        """
+        return cls.get_names()
+    
+    @classmethod
+    def get_names(cls,do_index=True,do_put_unit=True):
+        """変数名の文字列を返す"""
 
         annotations = cls.__dict__.get("__annotations__") #クラスから、アノテーションがついた変数の配列を取得
         text = ""
         index = 0
         for name, unit in annotations.items():
-            text += f"{index}:{name} {unit},  "
+            text += f"{f'{index}:' if do_index else ''}{name}{unit if do_put_unit else ''},"
             index += 1
-        text = text[:-3] #最後の",  "は消しておく
+        text = text[:-1] #最後の","は消しておく
         return text
 
     def __iter__(self):
