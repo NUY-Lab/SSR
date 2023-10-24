@@ -49,6 +49,9 @@ def set_file(filename: str = None, add_date: bool = True,openfolder=None):
         ファイル名
     add_date : bool
         ファイル名の先頭に日付をつけるかどうか
+    openfolder: str
+        ファイル作成ダイアログが最初に開かれるフォルダ filenameを設定した場合は無視される
+    
     """
         
     
@@ -96,15 +99,28 @@ def calibration(x: float) -> float:
 def set_label(label: str) -> None:
     """
     ラベルをファイルに書き込み
+    ヘッダーの方が命名的に良いと思ったのでset_headerを使うことを推奨
     
     Parameters
     --------------
     label:str
         書き込むラベル文字列
     """
+    set_header(label)
+
+
+def set_header(header:str)->None:
+    """
+    ヘッダーをファイルに書き込み
+    
+    Parameters
+    --------------
+    header:str
+        書き込むヘッダー文字列
+    """
     if _measurement_manager.state.current_step != MeasurementStep.START:
         logger.warning(sys._getframe().f_code.co_name + "はstart関数内で用いてください")
-    _measurement_manager.file_manager.write(label + "\n")
+    _measurement_manager.file_manager.write(header + "\n")
 
 
 def write_file(text: str,is_flush=True) -> None:

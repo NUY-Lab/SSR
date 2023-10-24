@@ -17,7 +17,7 @@ from measurement_manager import no_plot  # プロットしないときに使う(
 from measurement_manager import plot  # ウィンドウに点をプロット 引数は float(X座標),float(Y座標)
 from measurement_manager import save  # ファイルに保存 引数はtupleもしくはDataクラスの変数
 from measurement_manager import set_file  # ファイル名をセットする 引数はstring 引数なしだとファイル保存ダイアログを出す
-from measurement_manager import set_label  # ファイルの先頭にラベル行をいれる
+from measurement_manager import set_header  # ファイルの先頭にラベル行をいれる
 from measurement_manager import set_plot_info  # プロット情報入力 (対数軸にするかなど)
 from measurement_manager import write_file  # ファイルへの書き込み 引数はstring (save関数と似てる)
 from split import TMR_split  # 簡易的なファイル分割ができる関数
@@ -70,11 +70,12 @@ def start():#最初に1回だけ実行される処理
     depth=float(input("d[mm] is > ")) #試料の厚さ入力
 
     LCR.write("APER LONG") #測定モードをLONGに
+    LCR.write("FUNC:IMP:TYPE CPD") #Cp-Dの測定モードに
 
     volt=LCR.query("VOLT?").replace(" ","") # LCRの電圧を取得
-    label="s="+str(electrode_area)+"[mm2], d="+str(depth)+"[mm], V="+volt+"[V]"#ファイルの先頭につけるラベル
+    header="s="+str(electrode_area)+"[mm2], d="+str(depth)+"[mm], V="+volt+"[V]"#ファイルの先頭につけるラベル
     
-    set_label(label + "\n" + Data.to_label()) # ファイル先頭にラベルを付けておく
+    set_header(header + "\n" + Data.get_names()) # ファイル先頭にラベルを付けておく
     calibration.set_shared_calib_file() #キャリブレーションの準備(shared_settings/calibration_fileフォルダから温度補正情報を取得)
     set_plot_info(line=False,xlog=False,ylog=False,renew_interval=1,flowwidth=0,legend=False) #プロット条件指定
     start_time=time.time() #スタート時刻を取得
