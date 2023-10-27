@@ -1,4 +1,9 @@
-"""キャリブレーションに使う関数"""
+"""
+
+キャリブレーションに使う関数
+いつかconversion.pyのDataConverterを使って書き直したい
+
+"""
 import os
 from logging import getLogger
 from pathlib import Path
