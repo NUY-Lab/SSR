@@ -34,7 +34,7 @@ def start():  # 最初に呼ばれる
     #データ名と単位をファイル先頭に書き出す
     set_label(Data.to_label())
 
-    print("スタート...")
+    print("スタート... (コマンドの入力もできます)")
 
 
 
@@ -59,7 +59,7 @@ def update():
     save(data)
 
     count += 1
-    if count == 5:
+    if count == 10:
         return False  # Falseを返すと測定が終了する
 
     time.sleep(1)  # 1秒待機

@@ -96,7 +96,7 @@ def on_forced_termination(func: Callable[[None], None]) -> None:
         """
 
         if ctrlType == win32con.CTRL_CLOSE_EVENT:
-            logger.debug("terminating measurement...")
+            logger.info("terminating measurement... 強制終了中...")
             func()
             # マクロが終了するまで最大100秒待機
             for i in range(100):
