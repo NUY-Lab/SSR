@@ -12,22 +12,32 @@ from utility import MyException, get_encode_type
 
 logger = getLogger(f"SSR.{__name__}")
 
+
 class ConverterError(MyException):
     """データ変換関連のエラー"""
 
-class DataConverter:
 
-    _interpolate_func=None
-    def set_file(self,filepath,skiprows,delimiter):
+class DataConverter:
+    _interpolate_func = None
+
+    def set_file(self, filepath, skiprows, delimiter, x_colmun=0, y_column=1):
         """データ変換に使う変換表をセット(ファイルから)"""
-        datas = np.loadtxt(fname=filepath,skiprows=skiprows,delimiter=delimiter,unpack=True,encoding=get_encode_type(filepath))
-        self.set_table(datas[0],datas[1])
-    def set_table(self,x,y,bounds_error=False, fill_value="extrapolate"):
+        datas = np.loadtxt(
+            fname=filepath,
+            skiprows=skiprows,
+            delimiter=delimiter,
+            unpack=True,
+            encoding=get_encode_type(filepath),
+        )
+        self.set_table(datas[x_colmun], datas[y_column])
+
+    def set_table(self, x, y, bounds_error=False, fill_value="extrapolate"):
         """データ変換に使う変換表をセット(x,yの配列から)"""
         self._interpolate_func = interpolate.interp1d(
             x, y, bounds_error=bounds_error, fill_value=fill_value
         )  # 線形補間関数定義
-    def convert(self,input_value):
+
+    def convert(self, input_value):
         """データ変換表に合わせて入力データを変換"""
         try:
             output_value = self._interpolate_func(input_value)
@@ -40,5 +50,3 @@ class DataConverter:
         except Exception as e:
             raise ConverterError("予期せぬエラーが発生しました") from e
         return output_value
-
-    
