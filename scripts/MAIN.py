@@ -56,7 +56,6 @@ def main() -> None:
     # これがなくても動くっぽいけどわかりやすさのために記述
     sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-   
     # 測定マクロ側のファイルをimportできるように
     sys.path.append(os.path.abspath(macrodir))
     # カレントディレクトリを測定マクロ側に変更
@@ -117,7 +116,7 @@ def split_only() -> None:
 
     logger.info(f"macro: {macroPath.stem}")
 
-    def noop(address): #ダミーの関数. こいつは何もしない
+    def noop(address):  # ダミーの関数. こいつは何もしない
         return None
 
     try:
@@ -142,6 +141,7 @@ def split_only() -> None:
     # 画面が閉じないようにinputをいれておく
     logger.info("finish splitting ... ")
     input()
+
 
 def setting() -> None:
     """変数のセット"""
