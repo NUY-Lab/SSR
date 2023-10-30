@@ -7,7 +7,8 @@ from logging import getLogger
 from typing import Tuple
 
 import serial
-from serial import Serial
+
+# from serial import Serial
 from utility import MyException
 
 logger = getLogger(f"SSR.{__name__}")
@@ -40,10 +41,10 @@ class LinkamT95SerialIO:
         try:
             # シリアルポートに接続(COMPORT以外の設定はマニュアル参照)
             self.ser = serial.Serial(
-                COMPORT,
+                port=COMPORT,
                 baudrate=19200,
                 bytesize=serial.EIGHTBITS,
-                stopbit=serial.STOPBITS_ONE,
+                stopbits=serial.STOPBITS_ONE,
                 parity=serial.PARITY_NONE,
                 timeout=0.5,
             )
