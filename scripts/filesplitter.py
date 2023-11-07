@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import List
 
 import pandas as pd
+from utility import MyException
 
 """
 使用例
@@ -20,7 +21,12 @@ FileSplitter(filepath="all.txt",skip_rows=2,delimiter=",")\ #分割するファ�
 
 """
 
+class FileSplitError(MyException):
+    """ファイル分割関係のエラー"""
+
 class FileSplitter:
+
+    
 
     def __init__(self,filepath,skip_rows,delimiter) -> None:
         """
@@ -160,7 +166,15 @@ class FileSplitter:
             if len(self.children)>0: #childrenがいれば子供のFileInfoのrenemeを実行
                 for child in self.children:
                     child.rename(filename_formatter=filename_formatter)
-
+        
+        
+        def get_file_num(self):
+            """ファイル数を数える"""
+            count=1
+            if len(self.children)>0:
+                for child in self.children:
+                    count+=child.get_file_num()
+            return count
 
                 
 
@@ -193,7 +207,7 @@ class FileSplitter:
     
     
     
-    def create(self,delimiter=","):
+    def create(self,delimiter=",",do_limit_filenum=True):
         """
         ファイル作成 FileSplitterは最後にこれを呼ばないとファイル作成をしない
 
@@ -201,7 +215,12 @@ class FileSplitter:
         ----------
         delimiter : str
             出力ファイルの区切り文字
+        do_limit_filenum : bool
+            分割数に上限をつける (間違えた分割をした際に大量のファイルを作成しないようにするため)
         """
+        if do_limit_filenum:
+            if self.rootfileinfo.get_file_num() > 500:
+                raise(FileSplitError("分割後のファイルの数が500を超えています.どうしても分割したい場合はdo_limit_filenum=Trueにしてください"))
         self.rootfileinfo.create(self.folderpath,delimiter=delimiter,label=self.label)
 
     def rename(self,filename_formatter):
