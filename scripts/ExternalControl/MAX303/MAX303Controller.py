@@ -5,7 +5,8 @@ from typing import Tuple
 
 from utility import MyException
 
-from MAX303IO import MAX303SerialIO, MAX303Error
+from ExternalControl.MAX303.MAX303IO import MAX303SerialIO
+
 
 
 class MAX303Controller:
