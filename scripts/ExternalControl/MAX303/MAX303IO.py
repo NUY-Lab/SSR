@@ -86,3 +86,6 @@ class MAX303SerialIO:
         self.write(command)
         ans = self.ser.read_until(b"\r\n")  # \r\nを最後尾に含む応答が返ってくるまで待つ
         return ans
+    
+    def close(self):
+        self.ser.close()
