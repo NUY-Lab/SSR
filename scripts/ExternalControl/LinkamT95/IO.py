@@ -23,11 +23,10 @@ class LinkamT95SerialIO:
 
     Attributes
     ----------
-    serial:
+    ser:
         serialモジュールにあるシリアル通信用のインスタンス
     """
 
-    serial: Serial = None
 
     def connect(self, COMPORT: str) -> None:
         """シリアル接続

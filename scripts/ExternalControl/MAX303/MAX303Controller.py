@@ -5,7 +5,7 @@ from typing import Tuple
 
 from utility import MyException
 
-from MAX303IO import MAX303SerialIO, MAX303Error
+from ExternalControl.MAX303.MAX303IO import MAX303SerialIO
 
 
 class MAX303Controller:
@@ -27,5 +27,5 @@ class MAX303Controller:
     def shutter_close(self):
         self.io.write("S0")
 
-    def hoge():
-        pass
+    def close(self):
+        self.io.close()

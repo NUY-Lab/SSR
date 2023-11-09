@@ -49,12 +49,14 @@ class MAX303SerialIO:
 
         _ = self.ser.read_all()  # 溜まっているコマンドを掃除
 
-        # Tコマンドを送ってなにか返ってきたらOK
-        ans = self.query("T")
-        if len(ans) < 10:
+        # Sコマンドを送ってなにか返ってきたらOK
+        try:
+            ans = self.query("S?")
+        except Exception as e:
             raise MAX303Error(
-                f"{COMPORT}にTコマンドを行った結果'{ans}'が返されました。MAX-303以外の機器である可能性があります"
+                f"{COMPORT}にSコマンドを送ろうとして失敗しました。MAX-303以外の機器である可能性があります"
             )
+            
 
     def write(self, command: str) -> None:
         """シリアル通信で書き込み
@@ -84,3 +86,6 @@ class MAX303SerialIO:
         self.write(command)
         ans = self.ser.read_until(b"\r\n")  # \r\nを最後尾に含む応答が返ってくるまで待つ
         return ans
+    
+    def close(self):
+        self.ser.close()
