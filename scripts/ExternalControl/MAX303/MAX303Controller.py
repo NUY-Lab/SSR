@@ -26,3 +26,6 @@ class MAX303Controller:
 
     def shutter_close(self):
         self.io.write("S0")
+
+    def hoge():
+        pass
