@@ -53,11 +53,6 @@ class MeasurementState:
         return bool(self.current_step & MeasurementStep.MEASURING)
 
 
-
-
-
-
-
 class FileManager:  # ファイルの管理
     """ファイルの作成・書き込みを行う
 
@@ -66,8 +61,6 @@ class FileManager:  # ファイルの管理
 
     filepath:str
         書き込んだファイルのパス
-    delimiter:str
-        区切り文字
 
 
 
@@ -88,19 +81,22 @@ class FileManager:  # ファイルの管理
 
     class FileIO:
         """実際にファイルに書き込みをする部分"""
-        __filepath=None
-        def __init__(self,filepath:Path) -> None:
-            self.__filepath=Path(filepath)
-            self.__file = open(filepath,"x",encoding="utf-8")
 
-        def write(self,text) -> None:
+        __filepath = None
+
+        def __init__(self, filepath: Path) -> None:
+            self.__filepath = Path(filepath)
+            self.__file = open(filepath, "x", encoding="utf-8")
+
+        def write(self, text) -> None:
             self.__file.write(text)
+
         def flush(self):
             self.__file.flush()
 
         def close(self):
             self.__file.close()
-            self.__file=None
+            self.__file = None
 
         @property
         def filepath(self) -> str:
@@ -108,32 +104,24 @@ class FileManager:  # ファイルの管理
             return self.__filepath
 
     __prewrite: str = ""
-    delimiter: str = ","
-    __fileIO:FileIO =None  
+    __fileIO: FileIO = None
 
     @property
     def filepath(self) -> str:
         """ファイルのパス"""
         return self.__fileIO.filepath if self.__fileIO is not None else None
 
-    def set_file(self,filepath:Path):
+    def set_file(self, filepath: Path):
+        self.__fileIO = FileManager.FileIO(filepath=filepath)
 
-        self.__fileIO=FileManager.FileIO(filepath=filepath)
-
-        if self.__prewrite!="":
+        if self.__prewrite != "":
             self.__fileIO.write(self.__prewrite)
             self.__fileIO.flush()
 
-    
-            
-
-        
-
-
-    def save(self, *args: Union[tuple, str],is_flush=True) -> None:
+    def save(self, *args: Union[tuple, str], is_flush=True, delimiter="\t") -> None:
         """
         データ保存
-        
+
         Parameter
         args: Union[tuple, str]
             保存するデータ。主にbasedata.pyのBaseDataを継承したものを引数に取ることを想定
@@ -145,17 +133,21 @@ class FileManager:  # ファイルの管理
         text = ""
 
         for data in args:
-            if issubclass(type(data),BaseData) or isinstance(data, tuple) or data is list:
-                text += self.delimiter.join(map(str, data))
+            if (
+                issubclass(type(data), BaseData)
+                or isinstance(data, tuple)
+                or data is list
+            ):
+                text += delimiter.join(map(str, data))
             else:
                 text += str(data)
-            text += self.delimiter
+            text += delimiter
         text = text[0:-1] + "\n"
         self.__fileIO.write(text)
         if is_flush:
             self.__fileIO.flush()
 
-    def write(self, text: str,is_flush=True) -> None:
+    def write(self, text: str, is_flush=True) -> None:
         """ファイルへの書き込み
 
         ファイルがまだ作成されていなければ別の場所に一次保存
@@ -170,8 +162,6 @@ class FileManager:  # ファイルの管理
     def close(self) -> None:
         """ファイルを閉じる"""
         self.__fileIO.close()
-
-    
 
 
 class CommandReceiver:  # コマンドの入力を受け取るクラス
