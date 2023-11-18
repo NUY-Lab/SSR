@@ -20,7 +20,7 @@ def get_instrument(address: Union[int, str]) -> pyvisa.resources.Resource:
 
 
 class GPIBController:
-    """GPIB機器に接続するクラス"""
+    """GPIB機器に接続するクラス,USBにも接続できる"""
 
     _instrument = None
 
@@ -79,10 +79,10 @@ class GPIBController:
             raise GPIBError("write()を呼ぶより前に機器に接続してください")
         self._instrument.write(command)
 
-    def query(self, command,remove_return=True):
+    def query(self, command, remove_return=True):
         """
         機器に書き込みして読み取り
-        
+
         Parameters
         -------------
         command: str
@@ -92,4 +92,8 @@ class GPIBController:
         """
         if self._instrument is None:
             raise GPIBError("query()を呼ぶより前に機器に接続してください")
-        return self._instrument.query(command) if not remove_return else self._instrument.query(command).replace("\n","")
+        return (
+            self._instrument.query(command)
+            if not remove_return
+            else self._instrument.query(command).replace("\n", "")
+        )

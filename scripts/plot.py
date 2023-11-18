@@ -38,7 +38,7 @@ colormap: tuple[str] = (
 
 
 def start_plot_window(
-    share_list: ListProxy,#ListProxy[tuple[float, float, str]],
+    share_list: ListProxy,  # ListProxy[tuple[float, float, str]],
     isfinish: bool,
     lock: Lock,
     plot_info: dict,
@@ -116,13 +116,15 @@ class PlotWindow:
         """プロットの処理をループで回す"""
         interval: int = self.interval
         while True:  # 一定時間ごとに更新
-            self.renew_window() #plotウィンドウの更新
+            self.renew_window()  # plotウィンドウの更新
             if self.isfinish.value == 1 or (not plt.get_fignums()):  # 終了していたらbreak
                 break
             time.sleep(interval)
 
-        if plt.get_fignums(): #ウィンドウが消えているかを判定(多分)
-            plt.show(block=True) #plt.show()を呼ぶことで このプロセスが落ちないようにしている (plotウィンドウを閉じるとこのプロセスは終了する)
+        if plt.get_fignums():  # ウィンドウが消えているかを判定(多分)
+            plt.show(
+                block=True
+            )  # plt.show()を呼ぶことで このプロセスが落ちないようにしている (plotウィンドウを閉じるとこのプロセスは終了する)
 
     _count_label: int = 0
     linedict = {}
@@ -148,7 +150,7 @@ class PlotWindow:
             if label not in self.linedict:  # 最初の一回だけは辞書に登録する
                 xarray = [x_val]
                 yaaray = [y_val]
-                color = colormap[(self._count_label) % len(colormap)] 
+                color = colormap[(self._count_label) % len(colormap)]
                 self._count_label += 1
                 (line,) = self._ax.plot(
                     xarray,
@@ -158,11 +160,13 @@ class PlotWindow:
                     label=label,
                     linestyle=self.linestyle,
                 )  # プロット
-                lineobj = self.LineObj(line, xarray, yaaray)  # プロットデータ(lineobj)を辞書に追加 (後でlineobjを呼び出してデータを追加する)
+                lineobj = self.LineObj(
+                    line, xarray, yaaray
+                )  # プロットデータ(lineobj)を辞書に追加 (後でlineobjを呼び出してデータを追加する)
                 self.linedict[label] = lineobj
 
-                if self.legend: #凡例をつける (ここの処理はちゃんと試していないからうまく動くかわからない)
-                    if self._count_label > 20: #凡例が20を超えたら2行
+                if self.legend:  # 凡例をつける (ここの処理はちゃんと試していないからうまく動くかわからない)
+                    if self._count_label > 20:  # 凡例が20を超えたら2行
                         ncol = 2
                         self._figure.set_size_inches(11.5, 6)
                         self._figure.subplots_adjust(

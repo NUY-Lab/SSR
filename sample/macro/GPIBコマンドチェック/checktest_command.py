@@ -30,22 +30,18 @@ def update():
         print("エラーが発生しました")
         input(f"エラーメッセージ : {e.message}")
         raise Exception(e.message)
-    
+
     name = inst.query("*IDN?")
     print(f"接続している機器の名前は {name} です")
 
-    
     while True:
         print("機器におくるコマンドを入力してください... 終了する際はウィンドウを閉じてください\n")
-        command= input()
+        command = input()
         if command == "":
             continue
 
         try:
-            ans=inst.query(command)
+            ans = inst.query(command)
             print(f"返り値 >> {ans}\n")
         except:
             print("返り値はありません\n")
-        
-        
-

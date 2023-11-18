@@ -18,44 +18,45 @@ from measurement_manager import set_plot_info  # プロット情報入力
 from measurement_manager import write_file  # ファイルへの書き込み引数は string
 
 
-#測定するデータとその単位を指定
+# 測定するデータとその単位を指定
 class Data(BaseData):
-    time:"[s]"
-    capacitance:"[pC]"
-    value:""
+    time: "[s]"
+    capacitance: "[pC]"
+    value: ""
+
 
 def start():  # 最初に呼ばれる
+    set_file()  # ファイル作成
 
-    set_file() #ファイル作成
+    # プロットする条件を指定、今回の条件は 線でつなぐ、xyを線形スケール、1秒毎更新、凡例なし、グラフを横に流さない
+    set_plot_info(
+        line=True, xlog=False, ylog=False, renew_interval=1, legend=False, flowwidth=0
+    )
 
-    #プロットする条件を指定、今回の条件は 線でつなぐ、xyを線形スケール、1秒毎更新、凡例なし、グラフを横に流さない
-    set_plot_info(line=True,xlog=False,ylog=False,renew_interval=1,legend=False,flowwidth=0)
-
-    #データ名と単位をファイル先頭に書き出す
+    # データ名と単位をファイル先頭に書き出す
     set_label(Data.to_label())
 
     print("スタート... (コマンドの入力もできます)")
 
 
-
-
 count = 0
+
 
 # 0から5までかぞえる
 def update():
-    global count #グローバル変数を使うときにはglobal宣言を行う
+    global count  # グローバル変数を使うときにはglobal宣言を行う
     print(f"{count}...")
 
-    #実際の測定の代わりにtimeとcapacitanceの値を入れる
-    time_=count
-    capacitance_=100
-    #データの作成
-    data=Data(time=time_,capacitance=capacitance_,value=count%2)
+    # 実際の測定の代わりにtimeとcapacitanceの値を入れる
+    time_ = count
+    capacitance_ = 100
+    # データの作成
+    data = Data(time=time_, capacitance=capacitance_, value=count % 2)
 
-    #プロット
+    # プロット
     plot(data.time, data.capacitance)
 
-    #保存
+    # 保存
     save(data)
 
     count += 1

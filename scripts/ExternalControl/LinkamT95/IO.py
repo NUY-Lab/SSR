@@ -27,7 +27,6 @@ class LinkamT95SerialIO:
         serialモジュールにあるシリアル通信用のインスタンス
     """
 
-
     def connect(self, COMPORT: str) -> None:
         """シリアル接続
 

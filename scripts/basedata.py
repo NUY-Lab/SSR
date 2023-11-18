@@ -17,18 +17,22 @@ class BaseData:
     3. iterableなのでsave関数にそのまま渡せば展開される
     4. 自動的にdataclassになるので、コンストラクタが自動生成される
 
-    
+
     """
 
     class BaseDataError(MyException):
         """データを保持するクラス関係のえらー"""
 
-    def __setattr__(self, __name: str, __value: Any) -> None: #要素に代入するとき(例 data.time = 100)に呼ばれる関数
+    def __setattr__(
+        self, __name: str, __value: Any
+    ) -> None:  # 要素に代入するとき(例 data.time = 100)に呼ばれる関数
         """あとから要素を追加するのを阻止"""
 
-        if __name in self.__class__.__dict__.get("__annotations__").keys(): #すでに存在する変数への代入ならば許可
+        if (
+            __name in self.__class__.__dict__.get("__annotations__").keys()
+        ):  # すでに存在する変数への代入ならば許可
             super().__setattr__(__name, __value)
-        else:#新しい変数への代入ならば不許可
+        else:  # 新しい変数への代入ならば不許可
             raise self.BaseDataError(
                 f"{__name}は{self.__class__.__name__}に最初に定義された変数に含まれていません。\n 使用する変数は宣言時に定義しておいてください"
             )
@@ -98,23 +102,25 @@ class BaseData:
         命名的にget_namesの方が良さそうなのでget_namesを使うことを推奨
         """
         return cls.get_names()
-    
+
     @classmethod
-    def get_names(cls,do_index=True,do_put_unit=True):
+    def get_names(cls, do_index=True, do_put_unit=True):
         """変数名の文字列を返す"""
 
-        annotations = cls.__dict__.get("__annotations__") #クラスから、アノテーションがついた変数の配列を取得
+        annotations = cls.__dict__.get("__annotations__")  # クラスから、アノテーションがついた変数の配列を取得
         text = ""
         index = 0
         for name, unit in annotations.items():
-            text += f"{f'{index}:' if do_index else ''}{name}{unit if do_put_unit else ''},"
+            text += (
+                f"{f'{index}:' if do_index else ''}{name}{unit if do_put_unit else ''},"
+            )
             index += 1
-        text = text[:-1] #最後の","は消しておく
+        text = text[:-1]  # 最後の","は消しておく
         return text
 
     def __iter__(self):
-        """配列として扱えるようにするための関数""" #for文のinの後ろにつけたときなどに呼ばれる
+        """配列として扱えるようにするための関数"""  # for文のinの後ろにつけたときなどに呼ばれる
         yield from list(self.__dict__.values())  # 変数をリストにして返す
 
-    def __str__(self) -> str: #str(data)のときに呼ばれる関数
+    def __str__(self) -> str:  # str(data)のときに呼ばれる関数
         return ",".join([str(s) for s in self.__dict__.values()])

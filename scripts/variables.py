@@ -5,6 +5,8 @@ from pathlib import Path
 from utility import MyException
 
 logger = getLogger(f"SSR.{__name__}")
+
+
 class VariablesError(MyException):
     """変数関係のエラー"""
 
