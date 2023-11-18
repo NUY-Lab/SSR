@@ -34,128 +34,142 @@ from split import TMR_split
 from variables import SHARED_VARIABLES
 
 
-#測定するデータの型とその単位を定義
+# 測定するデータの型とその単位を定義
 class Data(BaseData):
-    resistance_Pt_beside:"[Ohm]" #端っこの白金抵抗の抵抗値
-    temperature_beside:"[K]" #端っこの白金抵抗の抵抗値から見積もった端っこの温度
-    resistance_Pt_center:"[Ohm]" #中央の白金抵抗の抵抗値
-    temperature_center:"[K]" #中央の白金抵抗の抵抗値から見積もった中央の温度
+    resistance_Pt_beside: "[Ohm]"  # 端っこの白金抵抗の抵抗値
+    temperature_beside: "[K]"  # 端っこの白金抵抗の抵抗値から見積もった端っこの温度
+    resistance_Pt_center: "[Ohm]"  # 中央の白金抵抗の抵抗値
+    temperature_center: "[K]"  # 中央の白金抵抗の抵抗値から見積もった中央の温度
 
 
+# 測定に使う機械はここで宣言しておく
 
-#測定に使う機械はここで宣言しておく
-
-Keithley_center=GPIBController()
-Keithley_beside=GPIBController()
-
-
-CALIBRATION_FILE_CENTER_Pt="JPT100JIS.dat" #ステージ中央の白金抵抗の温度変換表
-CALIBRATION_FILE_BESIDE_Pt="JPT100JIS.dat" #ステージ端の白金抵抗の温度変換表
-
-#白金抵抗の抵抗値を温度に変換する関数
-interpolate_data=np.loadtxt(fname=CALIBRATION_FILE_CENTER_Pt,delimiter="\t",unpack=True,skiprows=1)
-interpolate_func_center=interp1d(interpolate_data[1],interpolate_data[0],bounds_error=False,fill_value="extrapolate")
-
-interpolate_data=np.loadtxt(fname=CALIBRATION_FILE_BESIDE_Pt,delimiter="\t",unpack=True,skiprows=1)
-interpolate_func_beside=interp1d(interpolate_data[1],interpolate_data[0],bounds_error=False,fill_value="extrapolate")
+Keithley_center = GPIBController()
+Keithley_beside = GPIBController()
 
 
+CALIBRATION_FILE_CENTER_Pt = "JPT100JIS.dat"  # ステージ中央の白金抵抗の温度変換表
+CALIBRATION_FILE_BESIDE_Pt = "JPT100JIS.dat"  # ステージ端の白金抵抗の温度変換表
+
+# 白金抵抗の抵抗値を温度に変換する関数
+interpolate_data = np.loadtxt(
+    fname=CALIBRATION_FILE_CENTER_Pt, delimiter="\t", unpack=True, skiprows=1
+)
+interpolate_func_center = interp1d(
+    interpolate_data[1],
+    interpolate_data[0],
+    bounds_error=False,
+    fill_value="extrapolate",
+)
+
+interpolate_data = np.loadtxt(
+    fname=CALIBRATION_FILE_BESIDE_Pt, delimiter="\t", unpack=True, skiprows=1
+)
+interpolate_func_beside = interp1d(
+    interpolate_data[1],
+    interpolate_data[0],
+    bounds_error=False,
+    fill_value="extrapolate",
+)
 
 
-def start():#最初に1回だけ実行される処理
+def start():  # 最初に1回だけ実行される処理
+    ADRESS_Keithley_beside = int(
+        input("ステージの端の白金抵抗に接続するKeithleyの番号>")
+    )  # ステージ中央の白金抵抗を測るKeithley2000のGPIB番号
+    ADRESS_Keithley_center = int(
+        input("ステージ中央の白金抵抗に接続するKeithleyの番号>")
+    )  # ステージ端の白金抵抗を測るKeithley2000のGPIB番号
 
-
-    ADRESS_Keithley_beside=int(input("ステージの端の白金抵抗に接続するKeithleyの番号>")) # ステージ中央の白金抵抗を測るKeithley2000のGPIB番号
-    ADRESS_Keithley_center=int(input("ステージ中央の白金抵抗に接続するKeithleyの番号>")) # ステージ端の白金抵抗を測るKeithley2000のGPIB番号
-
-    #機器に接続
+    # 機器に接続
 
     Keithley_center.connect(ADRESS_Keithley_center)
     Keithley_beside.connect(ADRESS_Keithley_beside)
 
+    set_label(
+        Data.to_label()
+        + f"ステージの端の白金抵抗に接続するKeithleyの番号:{ADRESS_Keithley_beside}, ステージ中央の白金抵抗に接続するKeithleyの番号:{ADRESS_Keithley_center}"
+    )  # ファイル先頭にラベルを付けておく
+    set_plot_info(
+        line=False, xlog=False, ylog=False, renew_interval=1, flowwidth=0, legend=False
+    )  # プロット条件指定
 
-    
-    
-    set_label(Data.to_label()+f"ステージの端の白金抵抗に接続するKeithleyの番号:{ADRESS_Keithley_beside}, ステージ中央の白金抵抗に接続するKeithleyの番号:{ADRESS_Keithley_center}") # ファイル先頭にラベルを付けておく
-    set_plot_info(line=False,xlog=False,ylog=False,renew_interval=1,flowwidth=0,legend=False) #プロット条件指定
-    
-
-
-    #Keithley2000の初期設定
-    Keithley_beside.write("SENS:FUNC 'FRES'") #四端子抵抗測定
-    Keithley_center.write("SENS:FUNC 'FRES'") # 四端子抵抗測定 or 二端子抵抗測定
-
-
-def update():#測定中に何度も実行される処理
-    data=get_data()#データ取得
-    save(data)#セーブ
-    plot(data.temperature_beside,data.temperature_center)#プロット
-    time.sleep(0.3)#0.3秒待つ
+    # Keithley2000の初期設定
+    Keithley_beside.write("SENS:FUNC 'FRES'")  # 四端子抵抗測定
+    Keithley_center.write("SENS:FUNC 'FRES'")  # 四端子抵抗測定 or 二端子抵抗測定
 
 
+def update():  # 測定中に何度も実行される処理
+    data = get_data()  # データ取得
+    save(data)  # セーブ
+    plot(data.temperature_beside, data.temperature_center)  # プロット
+    time.sleep(0.3)  # 0.3秒待つ
 
-def get_data(): #実際に測定してる部分
 
-    resistnce_center=float(Keithley_center.query("FETCH?")) #プラチナ抵抗温度計の抵抗を取得
-    resistnce_beside=float(Keithley_beside.query("FETCH?")) #プラチナ抵抗温度計の抵抗を取得
-    temperature_center=interpolate_func_center(resistnce_center) #抵抗値を温度に変換
-    temperature_beside=interpolate_func_beside(resistnce_beside) #抵抗値を温度に変換
+def get_data():  # 実際に測定してる部分
+    resistnce_center = float(Keithley_center.query("FETCH?"))  # プラチナ抵抗温度計の抵抗を取得
+    resistnce_beside = float(Keithley_beside.query("FETCH?"))  # プラチナ抵抗温度計の抵抗を取得
+    temperature_center = interpolate_func_center(resistnce_center)  # 抵抗値を温度に変換
+    temperature_beside = interpolate_func_beside(resistnce_beside)  # 抵抗値を温度に変換
 
-    
-  
-    
-
-    #データに中身を入れて返す
-    return Data(resistance_Pt_beside=resistnce_beside,temperature_beside=temperature_beside,resistance_Pt_center=resistnce_center,temperature_center=temperature_center)
+    # データに中身を入れて返す
+    return Data(
+        resistance_Pt_beside=resistnce_beside,
+        temperature_beside=temperature_beside,
+        resistance_Pt_center=resistnce_center,
+        temperature_center=temperature_center,
+    )
 
 
 def split(filepath):
-    
-    data=np.loadtxt(fname=filepath,delimiter=",",unpack=True,skiprows=1,encoding="utf-8")
+    data = np.loadtxt(
+        fname=filepath, delimiter=",", unpack=True, skiprows=1, encoding="utf-8"
+    )
 
-    resistance_beside,temperature_center=zip(*sorted(zip(data[0],data[3]))) #ソートする
+    resistance_beside, temperature_center = zip(*sorted(zip(data[0], data[3])))  # ソートする
 
-    #以下ではresistance_besideの間隔を一定にした上で平均化によってなめらかにする
-    fitting_curve=interp1d(resistance_beside,temperature_center) 
+    # 以下ではresistance_besideの間隔を一定にした上で平均化によってなめらかにする
+    fitting_curve = interp1d(resistance_beside, temperature_center)
 
-    min_res_beside=math.ceil(resistance_beside[0])
-    max_res_beside=math.floor(resistance_beside[-1])
-    new_resistance_beside=np.linspace(min_res_beside,max_res_beside,(max_res_beside-min_res_beside)*5)#新しい抵抗値のリスト
+    min_res_beside = math.ceil(resistance_beside[0] * 10) / 10
+    max_res_beside = math.floor(resistance_beside[-1] * 10) / 10
+    new_resistance_beside = np.linspace(
+        min_res_beside, max_res_beside, int((max_res_beside - min_res_beside) * 10)
+    )  # 新しい抵抗値のリスト
 
-    new_temperature_center=smoothen(fitting_curve(new_resistance_beside),2)
+    new_temperature_center = smoothen(fitting_curve(new_resistance_beside), 2)
 
-    calib_file_path= os.path.dirname(filepath)+"/"+get_date_text()+"_calibration.dat"
+    calib_file_path = (
+        os.path.dirname(filepath) + "/" + get_date_text() + "_calibration.dat"
+    )
 
-    with open(calib_file_path,"x",encoding="utf-8",newline='\n') as f:
+    with open(calib_file_path, "x", encoding="utf-8", newline="\n") as f:
         f.write("0:temperature_center[K], 1:resistance_beside[Ohm]\n")
 
-        for T,R in zip(new_temperature_center,new_resistance_beside):
-            f.write(f"{T},{R}\n") #今までの校正ファイルと同じ順番で保存
+        for T, R in zip(new_temperature_center, new_resistance_beside):
+            f.write(f"{T},{R}\n")  # 今までの校正ファイルと同じ順番で保存
 
-
-    input(f"キャリブレーションファイルを{calib_file_path}に作成しました.\n{str(SHARED_VARIABLES.SETTINGDIR / 'calibration_file')}のファイルを新しいものに置き換えてください\nもし、測定データの一部の区間だけ(降温だけなど)を使用したいなら、一度手動で抽出してからSSR_splitでこのマクロを使ってキャリブレーションファイルを作成してください。")
+    input(
+        f"キャリブレーションファイルを{calib_file_path}に作成しました.\n{str(SHARED_VARIABLES.SETTINGDIR / 'calibration_file')}のファイルを新しいものに置き換えてください\nもし、測定データの一部の区間だけ(降温だけなど)を使用したいなら、一度手動で抽出してからSSR_splitでこのマクロを使ってキャリブレーションファイルを作成してください。"
+    )
     input("Enterを押すと終了します...")
 
-    
 
-
-
-
-
-
-def smoothen(target_list,average_halfwidth):
-    new_list=[]
+def smoothen(target_list, average_halfwidth):
+    """
+    なめらかにする関数
+    点が等間隔でないと使えない
+    """
+    new_list = []
     for i in range(len(target_list)):
-        if(i<average_halfwidth) or ( i +average_halfwidth>= len(target_list)):
-            width=min(i,len(target_list)-1-i)
+        if (i < average_halfwidth) or (i + average_halfwidth >= len(target_list)):
+            width = min(i, len(target_list) - 1 - i)
         else:
-            width=average_halfwidth
-        new_list.append(sum(target_list[i-width:i+width+1])/(width*2+1))
+            width = average_halfwidth
+        new_list.append(sum(target_list[i - width : i + width + 1]) / (width * 2 + 1))
 
     return new_list
 
-
-    
 
 def get_date_text() -> str:
     """
@@ -167,15 +181,5 @@ def get_date_text() -> str:
     # 日時をゼロ埋めしたりしてからファイル名の先頭につける
     year = str(dt_now.year)
 
-    datelabel = (
-        year
-        + str(dt_now.month).zfill(2)
-        + str(dt_now.day).zfill(2)
-    )
+    datelabel = year + str(dt_now.month).zfill(2) + str(dt_now.day).zfill(2)
     return datelabel
-
-
-
-
-    
-    

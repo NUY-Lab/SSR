@@ -22,13 +22,36 @@
       "formatter": "default",
       "filename": "",
       "encoding": "utf-8"
+    },
+    "SSRDebugFileHandler": {
+      "class": "logging.FileHandler",
+      "level": "DEBUG",
+      "formatter": "default",
+      "filename": "",
+      "encoding": "utf-8",
+      "filters": [
+        "onlyDebug_filter"
+      ]
     }
   },
   "root": {
-    "level": "INFO",
+    "level": "NOTSET",
     "handlers": [
       "consoleHandler",
       "sharedFileHandler"
     ]
+  },
+  "loggers": {
+    "SSR": {
+      "level": "DEBUG",
+      "handlers": [
+        "SSRDebugFileHandler"
+      ]
+    }
+  },
+  "filters": {
+    "onlyDebug_filter": {
+      "()": ""
+    }
   }
 }

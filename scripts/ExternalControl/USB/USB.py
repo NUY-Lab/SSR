@@ -1,5 +1,5 @@
 """
-USB通信周りの処理はUSBと同じ書き方でできそうなので流用
+USB通信周りの処理はGPIBと同じ書き方でできそうなので流用
 うまくいかないケースがあったらその時書き換えてください
 """
 from logging import getLogger
@@ -8,7 +8,7 @@ from typing import Union
 import pyvisa
 from utility import MyException
 
-logger = getLogger(__name__)
+logger = getLogger(f"SSR.{__name__}")
 
 
 class USBError(MyException):
@@ -27,7 +27,7 @@ class USBController:
         ----------
 
         address: string or int
-            機器のUSBアドレス (NIMAXで確認できる. 逆にNIMAXで確認できないものは少なくともこのコードでは接続できない)
+            機器のUSBアドレス (NIMAXで確認できる. 逆にNIMAXで確認できないものは少なくともこのコードでは接続できない())
 
         Returns
         -------

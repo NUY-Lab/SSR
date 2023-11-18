@@ -6,7 +6,7 @@ from typing import Optional
 from utility import MyException, ask_open_filename, get_encode_type
 from variables import SHARED_VARIABLES, USER_VARIABLES
 
-logger = getLogger(__name__)
+logger = getLogger(f"SSR.{__name__}")
 
 
 class DefineFileError(MyException):
@@ -82,7 +82,9 @@ def read_deffile() -> None:
         raise DefineFileError(f"{tempdir}は定義ファイルに設定されていますが存在しません")
 
     if macrodir is None:
-        logger.warning("you can set MACRODIR in your define file")
+        logger.warning(
+            "you can set MACRODIR in your define file"
+        )  # 定義ファイルに"MACRODIR=~~~"の指定がなければ指定できることを教える
     else:
         if not macrodir.is_absolute():
             macrodir = path_deffile.parent / macrodir

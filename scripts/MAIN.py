@@ -18,13 +18,12 @@ import win32con
 from define import read_deffile
 from macro import get_macro, get_macro_recalculate, get_macro_split, get_macropath
 from macro_grammar import macro_grammer_check
-from recalculate import recalc
 from utility import MyException, ask_open_filename
 from variables import USER_VARIABLES
 
 from log import set_user_log, setlog
 
-logger = getLogger(__name__)
+logger = getLogger(f"SSR.{__name__}")
 
 
 def main() -> None:
@@ -52,10 +51,13 @@ def main() -> None:
     # マクロファイルのパスを取得
     macropath, _, macrodir = get_macropath()
 
+    logger.info(f"macro: {macropath}")
     # scriptsフォルダーを検索パスに追加
     # これがなくても動くっぽいけどわかりやすさのために記述
     sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+    # 測定マクロ側のファイルをimportできるように
+    sys.path.append(os.path.abspath(macrodir))
     # カレントディレクトリを測定マクロ側に変更
     os.chdir(str(macrodir))
 
@@ -93,8 +95,8 @@ def on_forced_termination(func: Callable[[None], None]) -> None:
         """
 
         if ctrlType == win32con.CTRL_CLOSE_EVENT:
+            logger.info("terminating measurement... 強制終了中...")
             func()
-            print("terminating measurement...")
             # マクロが終了するまで最大100秒待機
             for i in range(100):
                 time.sleep(1)
@@ -105,21 +107,22 @@ def on_forced_termination(func: Callable[[None], None]) -> None:
 
 # 分割関数だけを呼び出し
 def split_only() -> None:
-    print("分割マクロ選択...")
+    logger.info("分割マクロ選択...")
     macroPath = ask_open_filename(
         filetypes=[("pythonファイル", "*.py *.SSR")], title="分割マクロを選択してください"
     )
-
+    sys.path.append(os.path.abspath(macroPath.parent))
     os.chdir(str(macroPath.parent))
-    print(f"macro: {macroPath.stem}")
 
-    def noop(address):
+    logger.info(f"macro: {macroPath.stem}")
+
+    def noop(address):  # ダミーの関数. こいつは何もしない
         return None
 
     try:
         import GPIB
 
-        # GPIBモジュールの関数を書き換えてGPIBがつながって無くてもエラーが出ないようにする
+        # GPIBモジュールの関数をダミー関数(noop)に書き換えてGPIBがつながって無くてもエラーが出ないようにする
         GPIB.get_instrument = noop
         logger.info("you can't use GPIB.get_instrument in GPyM_bunkatsu")
         logger.info(
@@ -129,36 +132,14 @@ def split_only() -> None:
         pass
 
     target = get_macro_split(macroPath)
-
-    print("分割ファイル選択...")
+    logger.info("分割ファイル選択...")
     filePath = ask_open_filename(
         filetypes=[("データファイル", "*.txt *dat")], title="分割するファイルを選択してください"
     )
-
+    logger.info(f"file: {filePath}")
     target.split(filePath)
     # 画面が閉じないようにinputをいれておく
-    input()
-
-
-def recalculate_only() -> None:
-    print("再計算マクロ選択...")
-    macroPath = ask_open_filename(
-        filetypes=[("pythonファイル", "*.py *.SSR")], title="再計算マクロを選択してください"
-    )
-
-    os.chdir(str(macroPath.parent))
-    print(f"macro: {macroPath.stem}")
-
-    target = get_macro_recalculate(macroPath)
-
-    print("再計算ファイル選択...")
-    filePath = ask_open_filename(
-        filetypes=[("データファイル", "*.txt *dat")], title="再計算するファイルを選択してください"
-    )
-
-    recalc(target, filePath)
-
-    # 画面が閉じないようにinputをいれておく
+    logger.info("finish splitting ... ")
     input()
 
 
@@ -186,9 +167,11 @@ if __name__ == "__main__":
 
     # 引数によって測定モードか分割モードかを判定
     while True:
-        if mode in ["MEAS", "SPLIT", "RECALCULATE"]:
+        if mode in ["MEAS", "SPLIT"]:
             break
         mode = input("mode is > ").upper()
+
+    logger.debug("---------------------------------------------------------------")
 
     # 処理を開始
     try:
@@ -196,8 +179,6 @@ if __name__ == "__main__":
             main()
         elif mode == "SPLIT":
             split_only()
-        elif mode == "RECALCULATE":
-            recalculate_only()
     # エラーは全てここでキャッチ
     except MyException as e:
         print("*****************Error*****************")

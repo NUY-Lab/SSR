@@ -7,6 +7,7 @@ from ExternalControl.GPIB.GPIB import (
 from ExternalControl.LinkamT95.Controller import (
     LinkamT95AutoController,  # リンカムの操作 # inst=LinkamT95AutoController() でインスタンス作成 # inst.connect(<COMPORTアドレス>)で接続(COMPORTアドレスはデバイスマネージャーからわかる) # inst.add_sequence(<コマンド>)でコマンド送信 # answer = inst.query(<コマンド>)でコマンド送信&読み取り
 )
+from filesplitter import FileSplitter  # ファイルを分割するクラス
 from measurement_manager import finish  # 測定の終了 引数なし
 from measurement_manager import no_plot  # プロットしないときに使う
 from measurement_manager import plot  # ウィンドウに点をプロット 引数は float,float
@@ -17,47 +18,49 @@ from measurement_manager import set_plot_info  # プロット情報入力
 from measurement_manager import write_file  # ファイルへの書き込み引数は string
 
 
-#測定するデータとその単位を指定
+# 測定するデータとその単位を指定
 class Data(BaseData):
-    time:"[s]"
-    capacitance:"[pC]"
+    time: "[s]"
+    capacitance: "[pC]"
+    value: ""
+
 
 def start():  # 最初に呼ばれる
+    set_file()  # ファイル作成
 
-    set_file() #ファイル作成
+    # プロットする条件を指定、今回の条件は 線でつなぐ、xyを線形スケール、1秒毎更新、凡例なし、グラフを横に流さない
+    set_plot_info(
+        line=True, xlog=False, ylog=False, renew_interval=1, legend=False, flowwidth=0
+    )
 
-    #プロットする条件を指定、今回は点を線でつなぐように設定
-    set_plot_info(line=True,xlog=False,ylog=False)
-
-    #データ名と単位をファイル先頭に書き出す
+    # データ名と単位をファイル先頭に書き出す
     set_label(Data.to_label())
 
-    print("スタート...")
-
-
+    print("スタート... (コマンドの入力もできます)")
 
 
 count = 0
 
+
 # 0から5までかぞえる
 def update():
-    global count #グローバル変数を使うときにはglobal宣言を行う
+    global count  # グローバル変数を使うときにはglobal宣言を行う
     print(f"{count}...")
 
-    #実際の測定の代わりにtimeとcapacitanceの値を入れる
-    time_=count
-    capacitance_=100
-    #データの作成
-    data=Data(time=time_,capacitance=capacitance_)
+    # 実際の測定の代わりにtimeとcapacitanceの値を入れる
+    time_ = count
+    capacitance_ = 100
+    # データの作成
+    data = Data(time=time_, capacitance=capacitance_, value=count % 2)
 
-    #プロット
+    # プロット
     plot(data.time, data.capacitance)
 
-    #保存
+    # 保存
     save(data)
 
     count += 1
-    if count == 5:
+    if count == 10:
         return False  # Falseを返すと測定が終了する
 
     time.sleep(1)  # 1秒待機
@@ -77,4 +80,5 @@ def on_command(command):  # 測定中にコマンドを入力したら呼ばれ�
 
 # splitは周波数分割などをする際に用いる。これを書くと測定ファイルはフォルダに入れられる
 # def split(path):
+#     FileSplitter(filepath=path,skip_rows=1,delimiter=",").column_value_split(colum_num=2).create(delimiter="\t")
 #    #分割用の処理をここに書く
