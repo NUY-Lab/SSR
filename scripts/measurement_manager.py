@@ -40,7 +40,7 @@ def finish() -> None:
     _measurement_manager.is_measuring = False
 
 
-def set_file(filename: str = None, add_date: bool = True,openfolder=None):
+def set_file(filename: str = None, add_date: bool = True, openfolder=None):
     """ファイル名をセット
 
     Parameter
@@ -51,28 +51,37 @@ def set_file(filename: str = None, add_date: bool = True,openfolder=None):
         ファイル名の先頭に日付をつけるかどうか
     openfolder: str
         ファイル作成ダイアログが最初に開かれるフォルダ filenameを設定した場合は無視される
-    
+
     """
-        
-    
+
     if filename is not None:
-        pyperclip.copy(filename) #ファイル名はクリップボードにコピーしておく
+        pyperclip.copy(filename)  # ファイル名はクリップボードにコピーしておく
         if add_date:
-            filename=f"{get_date_text()}_{filename}.txt" #先頭に日付追加
-            filepath=Path(f"{USER_VARIABLES.DATADIR}/{filename}")
-        _measurement_manager.file_manager.set_file(filepath=filepath) #データフォルダの下にファイルを作る
+            filename = f"{get_date_text()}_{filename}.txt"  # 先頭に日付追加
+            filepath = Path(f"{USER_VARIABLES.DATADIR}/{filename}")
+        _measurement_manager.file_manager.set_file(
+            filepath=filepath
+        )  # データフォルダの下にファイルを作る
     else:
-        filepath=ask_save_filename(filetypes=[("TEXT",".txt"),],defaultextension = "txt",initialdir=USER_VARIABLES.DATADIR if openfolder is None else openfolder,initialfile=get_date_text(),title="作成するファイル名を設定してください")
-        filename=os.path.splitext(os.path.basename(filepath))[0]
-        pyperclip.copy(filename) #ファイル名はクリップボードにコピーしておく
-        _measurement_manager.file_manager.set_file(filepath=filepath) #filepath=Noneだとダイアログを出してくれる
+        filepath = ask_save_filename(
+            filetypes=[
+                ("TEXT", ".txt"),
+            ],
+            defaultextension="txt",
+            initialdir=USER_VARIABLES.DATADIR if openfolder is None else openfolder,
+            initialfile=get_date_text(),
+            title="作成するファイル名を設定してください",
+        )
+        filename = os.path.splitext(os.path.basename(filepath))[0]
+        pyperclip.copy(filename)  # ファイル名はクリップボードにコピーしておく
+        _measurement_manager.file_manager.set_file(
+            filepath=filepath
+        )  # filepath=Noneだとダイアログを出してくれる
+
 
 def set_file_name(filename: str, add_date: bool = True) -> None:
     logger.warning("関数set_file_nameは非推奨です。 set_fileを使ってください")
-    set_file(filename=filename,add_date=add_date)
-    
-    
-    
+    set_file(filename=filename, add_date=add_date)
 
 
 def set_calibration(filepath_calib: Optional[str] = None) -> None:
@@ -100,7 +109,7 @@ def set_label(label: str) -> None:
     """
     ラベルをファイルに書き込み
     ヘッダーの方が命名的に良いと思ったのでset_headerを使うことを推奨
-    
+
     Parameters
     --------------
     label:str
@@ -109,10 +118,10 @@ def set_label(label: str) -> None:
     set_header(label)
 
 
-def set_header(header:str)->None:
+def set_header(header: str) -> None:
     """
     ヘッダーをファイルに書き込み
-    
+
     Parameters
     --------------
     header:str
@@ -123,7 +132,7 @@ def set_header(header:str)->None:
     _measurement_manager.file_manager.write(header + "\n")
 
 
-def write_file(text: str,is_flush=True) -> None:
+def write_file(text: str, is_flush=True) -> None:
     """
     ファイルに書き込み
     Parameters
@@ -133,7 +142,7 @@ def write_file(text: str,is_flush=True) -> None:
     is_flush: bool
         書き込みを確定させるかどうか (基本的にTrueでいい)
     """
-    _measurement_manager.file_manager.write(text,is_flush=is_flush)
+    _measurement_manager.file_manager.write(text, is_flush=is_flush)
 
 
 def set_plot_info(
@@ -190,7 +199,7 @@ def save_data(*data: Union[tuple, str]) -> None:
     save(*data)
 
 
-def save(*data: Union[tuple, str],is_flush=True) -> None:  # データ保存
+def save(*data: Union[tuple, str], is_flush=True) -> None:  # データ保存
     """引数のデータをファイルに書き込む.
 
     この関数が呼ばれるごとに書き込みの反映( __savefile.flush)をおこなっているので途中で測定が落ちてもそれまでのデータは残るようになっている.
@@ -210,7 +219,7 @@ def save(*data: Union[tuple, str],is_flush=True) -> None:  # データ保存
         & (MeasurementStep.UPDATE | MeasurementStep.END)
     ):
         logger.warning(sys._getframe().f_code.co_name + "はupdateもしくはend関数内で用いてください")
-    _measurement_manager.file_manager.save(*data,is_flush=is_flush)
+    _measurement_manager.file_manager.save(*data, is_flush=is_flush)
 
 
 plot_data_flag = False
@@ -255,7 +264,6 @@ def no_plot() -> None:
     _measurement_manager.plot_agency = PlotAgency.NoPlotAgency()
 
 
-
 class MeasurementManager:
     """測定の管理、マクロの各関数の呼び出し"""
 
@@ -287,8 +295,8 @@ class MeasurementManager:
         測定マクロに書かれた各関数はMAIN.pyによってここに渡されて
         ここでそれぞれの関数を適切なタイミングで呼んでいる
         """
-        
-        #測定状態の設定 
+
+        # 測定状態の設定
         self.state.current_step = MeasurementStep.READY
 
         while msvcrt.kbhit():  # 既に入っている入力は消す
@@ -296,43 +304,48 @@ class MeasurementManager:
 
         self.state.current_step = MeasurementStep.START
 
-
-        if self.macro.start is not None: #start関数が設定されていればstartを実行
+        if self.macro.start is not None:  # start関数が設定されていればstartを実行
             self.macro.start()
-        if (not self._dont_make_file) and (self.file_manager.filepath is None):#start関数でファイルをセットしていなければここでファイル作成
-            self.file_manager.set_file(filepath=f"{USER_VARIABLES.DATADIR}/{get_date_text()}.txt")
+        if (not self._dont_make_file) and (
+            self.file_manager.filepath is None
+        ):  # start関数でファイルをセットしていなければここでファイル作成
+            self.file_manager.set_file(
+                filepath=f"{USER_VARIABLES.DATADIR}/{get_date_text()}.txt"
+            )
         if not self._dont_make_file:
-            logger.info(f"file: {self.file_manager.filepath.name}") #作成ファイル名をログに出力
+            logger.info(f"file: {self.file_manager.filepath.name}")  # 作成ファイル名をログに出力
         self.plot_agency.run_plot_window()  # グラフウィンドウの立ち上げ
 
         while msvcrt.kbhit():  # 既に入っている入力は消す
             msvcrt.getwch()
 
         if self.macro.on_command is not None:
-            self.command_receiver.initialize() #command関数があるならcommandを受け取る処理を走らせる
+            self.command_receiver.initialize()  # command関数があるならcommandを受け取る処理を走らせる
 
         logger.info("measurement start")
         self.state.current_step = MeasurementStep.UPDATE
 
         self.is_measuring = True
         while True:  # 測定終了までupdateを回す
-            if not self.is_measuring: #is_measuringがFalseになったら測定ループを抜ける
+            if not self.is_measuring:  # is_measuringがFalseになったら測定ループを抜ける
                 break
-            command = self.command_receiver.get_command() # コマンドの受け取り
+            command = self.command_receiver.get_command()  # コマンドの受け取り
             if command is None:
-                flag = self.macro.update() #コマンドが入っていなければupdate実行
-                if (flag is not None) and not flag: #updateの返り値がFalseなら測定ループを抜ける
+                flag = self.macro.update()  # コマンドが入っていなければupdate実行
+                if (flag is not None) and not flag:  # updateの返り値がFalseなら測定ループを抜ける
                     logger.debug("return False from update function")
                     self.is_measuring = False
             else:
                 self.macro.on_command(command)  # コマンドが入っていればコマンドを呼ぶ
 
-            if self.plot_agency.is_plot_window_forced_terminated(): #プロットウィンドウを閉じたときも測定ループを抜けて測定終了
+            if (
+                self.plot_agency.is_plot_window_forced_terminated()
+            ):  # プロットウィンドウを閉じたときも測定ループを抜けて測定終了
                 logger.debug("measurement has finished because plot window closed")
                 self.is_measuring = False
 
         self.state.current_step = MeasurementStep.FINISH_MEASURE
-        self.plot_agency.stop_renew_plot_window() #測定終了時にはプロットウィンドウの更新を中断
+        self.plot_agency.stop_renew_plot_window()  # 測定終了時にはプロットウィンドウの更新を中断
 
         while msvcrt.kbhit():  # 既に入っている入力は消す
             msvcrt.getwch()
@@ -340,7 +353,7 @@ class MeasurementManager:
         logger.info("measurement has finished...")
         if self.macro.end is not None:
             self.state.current_step = MeasurementStep.END
-            self.macro.end() #end関数があれば実行
+            self.macro.end()  # end関数があれば実行
 
         if not self._dont_make_file:
             self.file_manager.close()  # ファイルはend関数の後で閉じる
@@ -349,10 +362,10 @@ class MeasurementManager:
 
         if not self._dont_make_file:
             if self.macro.split is not None:
-                self.macro.split(self.file_manager.filepath) #split関数を実行
+                self.macro.split(self.file_manager.filepath)  # split関数を実行
 
             if self.macro.after is not None:
-                self.macro.after(self.file_manager.filepath) #after関数を実行
+                self.macro.after(self.file_manager.filepath)  # after関数を実行
 
         self.end()
 
@@ -377,7 +390,9 @@ class MeasurementManager:
         endflag = False
         windowclose = False
 
-        thread1 = threading.Thread(target=wait_closewindow) #スレッドを作成して並行処理を行う (コンソール側の終了を待ちながらグラフウィンドウからの終了も検知できるようにしておく)
+        thread1 = threading.Thread(
+            target=wait_closewindow
+        )  # スレッドを作成して並行処理を行う (コンソール側の終了を待ちながらグラフウィンドウからの終了も検知できるようにしておく)
         thread1.setDaemon(True)
         thread1.start()
 

@@ -82,7 +82,9 @@ def read_deffile() -> None:
         raise DefineFileError(f"{tempdir}は定義ファイルに設定されていますが存在しません")
 
     if macrodir is None:
-        logger.warning("you can set MACRODIR in your define file") #定義ファイルに"MACRODIR=~~~"の指定がなければ指定できることを教える
+        logger.warning(
+            "you can set MACRODIR in your define file"
+        )  # 定義ファイルに"MACRODIR=~~~"の指定がなければ指定できることを教える
     else:
         if not macrodir.is_absolute():
             macrodir = path_deffile.parent / macrodir

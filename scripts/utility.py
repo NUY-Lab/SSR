@@ -52,7 +52,9 @@ def ask_open_filename(filetypes=None, title=None, initialdir=None, initialfile=N
     return Path(path).absolute()
 
 
-def ask_save_filename(filetypes=None, title=None, initialdir=None, initialfile=None,defaultextension=None):
+def ask_save_filename(
+    filetypes=None, title=None, initialdir=None, initialfile=None, defaultextension=None
+):
     """ファイル選択ダイアログをつくってファイルを返す関数"""
     tk = Tk()
 
@@ -62,7 +64,7 @@ def ask_save_filename(filetypes=None, title=None, initialdir=None, initialfile=N
         title=title,
         initialdir=initialdir,
         initialfile=initialfile,
-        defaultextension = defaultextension,
+        defaultextension=defaultextension,
     )
 
     # これとtk=Tk()がないと謎のウィンドウが残って邪魔になる
@@ -70,27 +72,28 @@ def ask_save_filename(filetypes=None, title=None, initialdir=None, initialfile=N
 
     return Path(path).absolute()
 
+
 def get_date_text() -> str:
-        """
-        今日の日時を返す
-        """
+    """
+    今日の日時を返す
+    """
 
-        dt_now = datetime.datetime.now()  # 日時取得
+    dt_now = datetime.datetime.now()  # 日時取得
 
-        # 日時をゼロ埋めしたりしてからファイル名の先頭につける
-        year = str(dt_now.year)
+    # 日時をゼロ埋めしたりしてからファイル名の先頭につける
+    year = str(dt_now.year)
 
-        datelabel = (
-            year[2]
-            + year[3]
-            + str(dt_now.month).zfill(2)
-            + str(dt_now.day).zfill(2)
-            + "-"
-            + str(dt_now.hour).zfill(2)
-            + str(dt_now.minute).zfill(2)
-            + str(dt_now.second).zfill(2)
-        )
-        return datelabel
+    datelabel = (
+        year[2]
+        + year[3]
+        + str(dt_now.month).zfill(2)
+        + str(dt_now.day).zfill(2)
+        + "-"
+        + str(dt_now.hour).zfill(2)
+        + str(dt_now.minute).zfill(2)
+        + str(dt_now.second).zfill(2)
+    )
+    return datelabel
 
 
 class MyException(Exception):

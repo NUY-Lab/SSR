@@ -26,20 +26,20 @@ def setlog() -> None:
         now = datetime.now()
 
         # 月ごとに新しいファイルにログを書き出す
-        logfilepath=str(
-            SHARED_VARIABLES.LOGDIR / f"{now.year}-{now.month}.log"
-        )
+        logfilepath = str(SHARED_VARIABLES.LOGDIR / f"{now.year}-{now.month}.log")
         conf["handlers"]["sharedFileHandler"]["filename"] = logfilepath
         conf["handlers"]["SSRDebugFileHandler"]["filename"] = logfilepath
-        conf["filters"]["onlyDebug_filter"]["()"]=OnlyDEBUGFileter
+        conf["filters"]["onlyDebug_filter"]["()"] = OnlyDEBUGFileter
         config.dictConfig(conf)
 
 
 class OnlyDEBUGFileter(Filter):
     def __init__(self, name: str = "") -> None:
         super().__init__(name)
+
     def filter(self, record: LogRecord) -> bool:
         return record.levelname == "DEBUG"
+
 
 def set_user_log(path: str) -> None:
     """ユーザーフォルダ内にもログファイル書き出し"""

@@ -53,10 +53,7 @@ class MAX303SerialIO:
         try:
             ans = self.query("S?")
         except Exception as e:
-            raise MAX303Error(
-                f"{COMPORT}にSコマンドを送ろうとして失敗しました。MAX-303以外の機器である可能性があります"
-            )
-            
+            raise MAX303Error(f"{COMPORT}にSコマンドを送ろうとして失敗しました。MAX-303以外の機器である可能性があります")
 
     def write(self, command: str) -> None:
         """シリアル通信で書き込み
@@ -86,6 +83,6 @@ class MAX303SerialIO:
         self.write(command)
         ans = self.ser.read_until(b"\r\n")  # \r\nを最後尾に含む応答が返ってくるまで待つ
         return ans
-    
+
     def close(self):
         self.ser.close()

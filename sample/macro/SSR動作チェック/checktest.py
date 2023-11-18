@@ -15,7 +15,6 @@ def update():
 
     print("まずGPIBの動作チェックをします...")
     while True:
-
         num = input("接続している機器のGPIB番号を入力してください >>")
         print("接続しています...")
         time.sleep(2)

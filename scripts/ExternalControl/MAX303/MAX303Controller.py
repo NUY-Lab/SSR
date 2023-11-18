@@ -8,7 +8,6 @@ from utility import MyException
 from ExternalControl.MAX303.MAX303IO import MAX303SerialIO
 
 
-
 class MAX303Controller:
     def __init__(self) -> None:
         self.io = MAX303SerialIO()
