@@ -61,8 +61,6 @@ class FileManager:  # ファイルの管理
 
     filepath:str
         書き込んだファイルのパス
-    delimiter:str
-        区切り文字
 
 
 
@@ -106,7 +104,6 @@ class FileManager:  # ファイルの管理
             return self.__filepath
 
     __prewrite: str = ""
-    delimiter: str = ","
     __fileIO: FileIO = None
 
     @property
@@ -121,7 +118,7 @@ class FileManager:  # ファイルの管理
             self.__fileIO.write(self.__prewrite)
             self.__fileIO.flush()
 
-    def save(self, *args: Union[tuple, str], is_flush=True) -> None:
+    def save(self, *args: Union[tuple, str], is_flush=True, delimiter="\t") -> None:
         """
         データ保存
 
@@ -141,10 +138,10 @@ class FileManager:  # ファイルの管理
                 or isinstance(data, tuple)
                 or data is list
             ):
-                text += self.delimiter.join(map(str, data))
+                text += delimiter.join(map(str, data))
             else:
                 text += str(data)
-            text += self.delimiter
+            text += delimiter
         text = text[0:-1] + "\n"
         self.__fileIO.write(text)
         if is_flush:

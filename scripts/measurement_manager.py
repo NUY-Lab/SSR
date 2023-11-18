@@ -199,7 +199,7 @@ def save_data(*data: Union[tuple, str]) -> None:
     save(*data)
 
 
-def save(*data: Union[tuple, str], is_flush=True) -> None:  # データ保存
+def save(*data: Union[tuple, str], is_flush=True, delimiter="\t") -> None:  # データ保存
     """引数のデータをファイルに書き込む.
 
     この関数が呼ばれるごとに書き込みの反映( __savefile.flush)をおこなっているので途中で測定が落ちてもそれまでのデータは残るようになっている.
@@ -219,7 +219,9 @@ def save(*data: Union[tuple, str], is_flush=True) -> None:  # データ保存
         & (MeasurementStep.UPDATE | MeasurementStep.END)
     ):
         logger.warning(sys._getframe().f_code.co_name + "はupdateもしくはend関数内で用いてください")
-    _measurement_manager.file_manager.save(*data, is_flush=is_flush)
+    _measurement_manager.file_manager.save(
+        *data, is_flush=is_flush, delimiter=delimiter
+    )
 
 
 plot_data_flag = False

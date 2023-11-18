@@ -156,7 +156,7 @@ def split(filepath):  # 測定ファイルを周波数分割
     # 1行目はファイル読み込み. skip_rowsは読み飛ばしの行数, delimiterは区切り文字(タブなら"\t") \は改行記号
     # 2,3行目はファイル分割. colum_numは分割に使う列,指定した列の値ごとにファイルを分割する. do_countで番号つけてfilename_formatterでファイル名を整形する
     # 4行目はファイル作成
-    FileSplitter(filepath=filepath, skip_rows=2, delimiter=",").column_value_split(
+    FileSplitter(filepath=filepath, skip_rows=2, delimiter="\t").column_value_split(
         colum_num=8, do_count=False, filename_formatter=None
     ).column_value_split(
         colum_num=1,
