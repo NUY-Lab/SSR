@@ -5,4 +5,8 @@ __pycache__/
 
 # SSR
 .ssr/
+/example/
+temp/[^.]*
+/test/
+/log/
 *.log
