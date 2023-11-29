@@ -28,7 +28,7 @@ class Data(BaseData):
     time: "[s]"
     frequency: "[Hz]"
     temperature: "[K]"
-    capacitance: "[C]"
+    capacitance: "[F]"
     permittivity_real: ""  # 単位がないときは""をつける
     permittivity_image: ""
     tan_delta: ""
