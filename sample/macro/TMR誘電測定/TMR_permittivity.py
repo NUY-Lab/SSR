@@ -105,7 +105,7 @@ def start():  # 最初に1回だけ実行される処理
 
 def update():  # 測定中に何度も実行される処理
     data = get_data()  # データ取得
-    if data.time > 5 * 60 * 60:  # 5時間経ったら勝手に終了するように
+    if data.time > 10 * 60 * 60:  # 5時間経ったら勝手に終了するように
         return False  # Falseを返すと終了する. それ以外のときはupdateを繰り返し続ける
     save(data)  # セーブ
     plot(
