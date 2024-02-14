@@ -145,9 +145,9 @@ class DataFile:
             if self.buf is None:
                 raise SSRError("閉じられたファイルに書き込もうとしています")
             else:
-                self.buf.append("\t".join(map(str, data)) + "\n")
+                self.buf.append(",".join(map(str, data)) + "\n")
                 return
-        self.file.write("\t".join(map(str, data)) + "\n")
+        self.file.write(",".join(map(str, data)) + "\n")
         self.file.flush()
 
     def flush(self) -> bool:

@@ -101,7 +101,7 @@ class BaseData:
         text = ""
         index = 0
         for name, unit in annotations.items():
-            text += f"{index}:{name} {unit},  "
+            text += f"{index}:{name} {unit}, "
             index += 1
         text = text[:-3]
         return text
