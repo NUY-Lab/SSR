@@ -28,7 +28,9 @@ def update():
         name = inst.query("*IDN?")
         print(f"接続している機器の名前は {name} です")
 
-        print("GPIBのチェックを続けるならYを、そうでなければ別の文字を入力してください\n")
+        print(
+            "GPIBのチェックを続けるならYを、そうでなければ別の文字を入力してください\n"
+        )
         if input() != "Y":
             break
 

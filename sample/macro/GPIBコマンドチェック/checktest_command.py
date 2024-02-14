@@ -35,7 +35,9 @@ def update():
     print(f"接続している機器の名前は {name} です")
 
     while True:
-        print("機器におくるコマンドを入力してください... 終了する際はウィンドウを閉じてください\n")
+        print(
+            "機器におくるコマンドを入力してください... 終了する際はウィンドウを閉じてください\n"
+        )
         command = input()
         if command == "":
             continue

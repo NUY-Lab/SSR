@@ -1,4 +1,9 @@
-"""キャリブレーションに使う関数"""
+"""
+
+キャリブレーションに使う関数
+いつかconversion.pyのDataConverterを使って書き直したい
+
+"""
 import os
 from logging import getLogger
 from pathlib import Path
@@ -8,7 +13,7 @@ from scipy import interpolate
 from utility import MyException, get_encode_type
 from variables import SHARED_VARIABLES
 
-logger = getLogger(__name__)
+logger = getLogger(f"SSR.{__name__}")
 
 
 class CalibrationError(MyException):
@@ -72,7 +77,10 @@ class TMRCalibrationManager:
         self.__set(Path(filepath_calib))
 
     def __set(self, filepath_calib: Path) -> None:  # プラチナ温度計の抵抗値を温度に変換するためのファイルを読み込み
-        """キャリブレーションファイルの2列目をx,1列目をyとして線形補間関数を作る.
+        """
+        キャリブレーションファイルの2列目をx,1列目をyとして線形補間関数を作る.
+        (前身のsrlで利用されていたマクロがそのようなデータ配列になっていたのでそれに合わせている)
+        (どこかのタイミングで1列目をx,2列目をyに変えたい)
 
         Parameter
         ---------

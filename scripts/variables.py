@@ -1,7 +1,10 @@
 """共有度の高い変数を置いておく"""
+from logging import getLogger
 from pathlib import Path
 
 from utility import MyException
+
+logger = getLogger(f"SSR.{__name__}")
 
 
 class VariablesError(MyException):
@@ -58,6 +61,7 @@ class USER_VARIABLES:
     @classmethod
     def set_TEMPDIR(cls, value: Path):
         """セッター"""
+        logger.debug(f"set USER TEMPDIR > {value}")
         cls.__TEMPDIR.value = value
 
     __DATADIR = PathObject()
@@ -69,6 +73,7 @@ class USER_VARIABLES:
 
     @classmethod
     def set_DATADIR(cls, value: Path):
+        logger.debug(f"set USER DATADIR > {value}")
         cls.__DATADIR.value = value
 
     __MACRODIR = PathObject()
@@ -80,6 +85,7 @@ class USER_VARIABLES:
 
     @classmethod
     def set_MACRODIR(cls, value: Path):
+        logger.debug(f"set USER MACRODIR > {value}")
         cls.__MACRODIR.value = value
 
 
@@ -116,6 +122,7 @@ class SHARED_VARIABLES:
     @classmethod
     def set_SETTINGDIR(cls, value: Path):
         """セッター"""
+        logger.debug(f"set SHARED SETTINGDIR > {value}")
         cls.__SETTINGDIR.value = value
 
     __TEMPDIR = PathObject()
@@ -127,6 +134,7 @@ class SHARED_VARIABLES:
 
     @classmethod
     def set_TEMPDIR(cls, value: Path):
+        logger.debug(f"set SHARED TEMPDIR > {value}")
         cls.__TEMPDIR.value = value
 
     __SSR_SCRIPTSDIR = PathObject()
@@ -138,6 +146,7 @@ class SHARED_VARIABLES:
 
     @classmethod
     def set_SSR_SCRIPTSDIR(cls, value: Path):
+        logger.debug(f"set SHARED SSR_SCRIPTDIR > {value}")
         cls.__SSR_SCRIPTSDIR.value = value
 
     __LOGDIR = PathObject()
@@ -149,6 +158,7 @@ class SHARED_VARIABLES:
 
     @classmethod
     def set_LOGDIR(cls, value: Path):
+        logger.debug(f"set SHARED LOGDIR > {value}")
         cls.__LOGDIR.value = value
 
     __SSR_HOMEDIR = PathObject()
@@ -160,6 +170,7 @@ class SHARED_VARIABLES:
 
     @classmethod
     def set_SSR_HOMEDIR(cls, value: Path):
+        logger.debug(f"set SHARED SSR_HOMEDIR > {value}")
         cls.__SSR_HOMEDIR.value = value
 
 
