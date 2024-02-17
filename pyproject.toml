@@ -2,5 +2,10 @@
 name = "SSR"
 readme = "docs/README.md"
 
-[tool.isort]
-profile = "black"
+[tool.ruff]
+src = ["scripts"]
+
+[tool.pytest.ini_options]
+pythonpath = "scripts"
+testpaths = ["tests"]
+addopts = ["--import-mode=importlib"]

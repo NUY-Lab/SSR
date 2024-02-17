@@ -20,3 +20,6 @@ pandas = "*"
 
 [dev-packages]
 ruff = ">=0.2.1"
+pytest = "*"
+pytest-mock = "*"
+freezegun = "*"

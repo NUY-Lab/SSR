@@ -1,4 +1,7 @@
 {
+  "python.analysis.extraPaths": [
+    "./scripts"
+  ],
   "[python]": {
     "editor.tabSize": 4,
     "editor.formatOnSave": true,
