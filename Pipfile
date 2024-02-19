@@ -19,5 +19,7 @@ pyperclip = "==1.8.2"
 pandas = "*"
 
 [dev-packages]
-black = ">=23.1.0"
-isort = ">=5.12.0"
+ruff = ">=0.2.1"
+pytest = "*"
+pytest-mock = "*"
+freezegun = "*"

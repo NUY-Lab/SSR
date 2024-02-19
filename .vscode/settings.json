@@ -1,11 +1,14 @@
 {
-  "python.formatting.provider": "black",
-
+  "python.analysis.extraPaths": [
+    "./scripts"
+  ],
   "[python]": {
     "editor.tabSize": 4,
     "editor.formatOnSave": true,
+    "editor.defaultFormatter": "charliermarsh.ruff",
     "editor.codeActionsOnSave": {
-      "source.organizeImports": true
+      "source.fixAll.ruff": "explicit",
+      "source.organizeImports.ruff": "explicit"
     }
   },
   "[json]": {

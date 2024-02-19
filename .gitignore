@@ -1,11 +1,11 @@
 # python
 __pycache__/
 .venv/
+.pytest_cache/
 
 # SSR
 /example/
 temp/[^.]*
-/test/
 /log/
 /shared_settings/*
 !/shared_settings/datasheet/
