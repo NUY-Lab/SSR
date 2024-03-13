@@ -7,6 +7,7 @@ name = "pypi"
 meas = "python scripts/MAIN.py MEAS"
 split = "python scripts/MAIN.py SPLIT"
 recalc = "python scripts/MAIN.py RECALCULATE"
+test = "python -m pytest "
 
 [packages]
 scipy = "==1.10.0"
