@@ -96,32 +96,32 @@ class BaseData:
 
         return super().__init_subclass__(**kwargs)  # これはおまじない
 
-    def __new__(cls,*args,**keywards):
+    def __new__(cls, *args, **keywards):
         if cls.auto_create_initfunc:
-            if len(args)>0:
+            if len(args) > 0:
                 raise cls.BaseDataError(
                     "【Dataクラス(BaseDataを継承したクラス)のエラー】\n"
-                    +"インスタンスを作成する際はData('変数名1'='値1','変数名2'='値2')のような形で入れてください\n"
-                    +"Data('値1','値2')のような書き方はだめです")
+                    + "インスタンスを作成する際はData('変数名1'='値1','変数名2'='値2')のような形で入れてください\n"
+                    + "Data('値1','値2')のような書き方はだめです"
+                )
             attrs = cls.__dict__
             annotations = attrs.get("__annotations__")  # 型ヒントの付いた変数を取得
             if set(annotations.keys()) != set(keywards.keys()):
                 raise cls.BaseDataError(
                     "【Dataクラス(BaseDataを継承したクラス)のエラー】\n"
-                    +"マクロ内でDataクラスを定義したときに決めた変数と\n"
-                    +"インスタンスを作成するときに入力した変数が異なっています。\n"
-                    +"例えば、\n\n"
-                    +"class Data(BaseData):\n"
-                    +'    \'変数1\': "[\'単位\']"\n'
-                    +'    \'変数2\': "[\'単位\']"\n'
-                    +'    \'変数3\': "[\'単位\']"\n\n'
-                    +"とDataクラスを定義したのなら、\n\n"
-                    +'data = Data(\'変数1\'=\'値1\',\'変数2\'=\'値2\',\'変数3\'=\'値3\')\n\n'
-                    +"としなければいけません。\n"
-                    +"最初に定義していない変数名を入れたり(例：data = Data(\'変数4\'=\'値4\'))、\n"
-                    +"最初に定義した変数を入れないのはだめです(例：data = Data(\'変数1\'=\'値1\',\'変数2\'=\'値2\'))"
-                    
-                    )
+                    + "マクロ内でDataクラスを定義したときに決めた変数と\n"
+                    + "インスタンスを作成するときに入力した変数が異なっています。\n"
+                    + "例えば、\n\n"
+                    + "class Data(BaseData):\n"
+                    + "    '変数1': \"['単位']\"\n"
+                    + "    '変数2': \"['単位']\"\n"
+                    + "    '変数3': \"['単位']\"\n\n"
+                    + "とDataクラスを定義したのなら、\n\n"
+                    + "data = Data('変数1'='値1','変数2'='値2','変数3'='値3')\n\n"
+                    + "としなければいけません。\n"
+                    + "最初に定義していない変数名を入れたり(例：data = Data('変数4'='値4'))、\n"
+                    + "最初に定義した変数を入れないのはだめです(例：data = Data('変数1'='値1','変数2'='値2'))"
+                )
         return super().__new__(cls)
 
     @classmethod
@@ -136,15 +136,15 @@ class BaseData:
     def get_names(cls, do_index=True, do_put_unit=True):
         """変数名の文字列を返す"""
 
-        annotations = cls.__dict__.get("__annotations__")  # クラスから、アノテーションがついた変数の配列を取得
+        annotations = cls.__dict__.get(
+            "__annotations__"
+        )  # クラスから、アノテーションがついた変数の配列を取得
         text = ""
         index = 0
         for name, unit in annotations.items():
-            text += (
-                f"{f'{index}:' if do_index else ''}{name}{unit if do_put_unit else ''},"
-            )
+            text += f"{f'{index}:' if do_index else ''}{name}{unit if do_put_unit else ''}\t"
             index += 1
-        text = text[:-1]  # 最後の","は消しておく
+        text = text[:-1]  # 最後の"\t"は消しておく
         return text
 
     def __iter__(self):
