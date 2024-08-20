@@ -3,6 +3,7 @@
 ユーザーのマクロ側から呼び出せる関数などはほとんどここにあります
 一部処理はmeasurement_manager_supportに切り出しています
 """
+
 import msvcrt
 import os
 import sys
@@ -12,8 +13,9 @@ from logging import getLogger
 from pathlib import Path
 from typing import Optional, Union
 
-import calibration as calib
 import pyperclip
+
+import calibration as calib
 from measurement_manager_support import (
     CommandReceiver,
     FileManager,
@@ -77,6 +79,35 @@ def set_file(filename: str = None, add_date: bool = True, openfolder=None):
         _measurement_manager.file_manager.set_file(
             filepath=filepath
         )  # filepath=Noneだとダイアログを出してくれる
+
+
+# set_file()をfilenameを出力するように書き換えた関数
+def set_file_id(filename: str = None, add_date: bool = True, openfolder=None):
+    if filename is not None:
+        pyperclip.copy(filename)  # ファイル名はクリップボードにコピーしておく
+        if add_date:
+            filename = f"{get_date_text()}_{filename}.txt"  # 先頭に日付追加
+            filepath = Path(f"{USER_VARIABLES.DATADIR}/{filename}")
+        _measurement_manager.file_manager.set_file(
+            filepath=filepath
+        )  # データフォルダの下にファイルを作る
+    else:
+        filepath = ask_save_filename(
+            filetypes=[
+                ("TEXT", ".txt"),
+            ],
+            defaultextension="txt",
+            initialdir=USER_VARIABLES.DATADIR if openfolder is None else openfolder,
+            initialfile=get_date_text(),
+            title="作成するファイル名を設定してください",
+        )
+        filename = os.path.splitext(os.path.basename(filepath))[0]
+        pyperclip.copy(filename)  # ファイル名はクリップボードにコピーしておく
+        _measurement_manager.file_manager.set_file(
+            filepath=filepath
+        )  # filepath=Noneだとダイアログを出してくれる
+
+    return filename
 
 
 def set_file_name(filename: str, add_date: bool = True) -> None:
@@ -218,7 +249,9 @@ def save(*data: Union[tuple, str], is_flush=True, delimiter="\t") -> None:  # �
         _measurement_manager.state.current_step
         & (MeasurementStep.UPDATE | MeasurementStep.END)
     ):
-        logger.warning(sys._getframe().f_code.co_name + "はupdateもしくはend関数内で用いてください")
+        logger.warning(
+            sys._getframe().f_code.co_name + "はupdateもしくはend関数内で用いてください"
+        )
     _measurement_manager.file_manager.save(
         *data, is_flush=is_flush, delimiter=delimiter
     )
@@ -227,7 +260,9 @@ def save(*data: Union[tuple, str], is_flush=True, delimiter="\t") -> None:  # �
 plot_data_flag = False
 
 
-def plot_data(x: float, y: float, label: str = "default") -> None:  # データをグラフにプロット
+def plot_data(
+    x: float, y: float, label: str = "default"
+) -> None:  # データをグラフにプロット
     global plot_data_flag
     if not plot_data_flag:
         logger.warning("plot_dataは非推奨です。plotを使ってください")
@@ -253,7 +288,10 @@ def plot(x: float, y: float, label: str = "default") -> None:
     """
 
     if _measurement_manager.state.current_step != MeasurementStep.UPDATE:
-        logger.warning(sys._getframe().f_code.co_name + "はstartもしくはupdate関数内で用いてください")
+        logger.warning(
+            sys._getframe().f_code.co_name
+            + "はstartもしくはupdate関数内で用いてください"
+        )
 
     if _measurement_manager.is_measuring:
         _measurement_manager.plot_agency.plot(x, y, label)
@@ -315,7 +353,9 @@ class MeasurementManager:
                 filepath=f"{USER_VARIABLES.DATADIR}/{get_date_text()}.txt"
             )
         if not self._dont_make_file:
-            logger.info(f"file: {self.file_manager.filepath.name}")  # 作成ファイル名をログに出力
+            logger.info(
+                f"file: {self.file_manager.filepath.name}"
+            )  # 作成ファイル名をログに出力
         self.plot_agency.run_plot_window()  # グラフウィンドウの立ち上げ
 
         while msvcrt.kbhit():  # 既に入っている入力は消す
@@ -334,7 +374,9 @@ class MeasurementManager:
             command = self.command_receiver.get_command()  # コマンドの受け取り
             if command is None:
                 flag = self.macro.update()  # コマンドが入っていなければupdate実行
-                if (flag is not None) and not flag:  # updateの返り値がFalseなら測定ループを抜ける
+                if (
+                    flag is not None
+                ) and not flag:  # updateの返り値がFalseなら測定ループを抜ける
                     logger.debug("return False from update function")
                     self.is_measuring = False
             else:
@@ -400,9 +442,7 @@ class MeasurementManager:
 
         time.sleep(0.1)
 
-        endflag = (
-            False  # 既にグラフが消えていた場合はwait_enterを終了処理とする. それ以外の場合はwait_closewindowも終了処理とする
-        )
+        endflag = False  # 既にグラフが消えていた場合はwait_enterを終了処理とする. それ以外の場合はwait_closewindowも終了処理とする
 
         thread2 = threading.Thread(target=wait_enter)
         thread2.setDaemon(True)
