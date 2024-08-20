@@ -1,7 +1,5 @@
 import math
-import statistics
 import time
-from collections import deque
 
 from basedata import BaseData
 from calibration import TMRCalibrationManager
@@ -12,15 +10,13 @@ from ExternalControl.LinkamT95.Controller import (
     LinkamT95AutoController,  # リンカムの操作 # inst=LinkamT95AutoController() でインスタンス作成 # inst.connect(<COMPORTアドレス>)で接続(COMPORTアドレスはデバイスマネージャーからわかる) # inst.add_sequence(<コマンド>)でコマンド送信 # answer = inst.query(<コマンド>)でコマンド送信&読み取り
 )
 from filesplitter import FileSplitter
-from measurement_manager import finish  # 測定の終了 引数なし
-from measurement_manager import no_plot  # プロットしないときに使う(高速化するときなど)
-from measurement_manager import plot  # ウィンドウに点をプロット 引数は float(X座標),float(Y座標)
-from measurement_manager import save  # ファイルに保存 引数はtupleもしくはDataクラスの変数
-from measurement_manager import set_file  # ファイル名をセットする 引数はstring 引数なしだとファイル保存ダイアログを出す
-from measurement_manager import set_header  # ファイルの先頭にラベル行をいれる
-from measurement_manager import set_plot_info  # プロット情報入力 (対数軸にするかなど)
-from measurement_manager import write_file  # ファイルへの書き込み 引数はstring (save関数と似てる)
-from split import TMR_split  # 簡易的なファイル分割ができる関数
+from measurement_manager import (
+    plot,  # ウィンドウに点をプロット 引数は float(X座標),float(Y座標)
+    save,  # ファイルに保存 引数はtupleもしくはDataクラスの変数
+    set_file,  # ファイル名をセットする 引数はstring 引数なしだとファイル保存ダイアログを出す
+    set_header,  # ファイルの先頭にラベル行をいれる
+    set_plot_info,  # プロット情報入力 (対数軸にするかなど)
+)
 
 
 # 測定するデータの型とその単位を定義
@@ -41,7 +37,7 @@ depth: float  # 試料厚さ
 start_time: float  # 測定開始時間
 count = 0  # 今どの周波数で測定するのかを決める数字
 
-ADRESS_LCR = 7  # LCRのGPIB番号
+ADRESS_LCR = 13  # LCRのGPIB番号
 ADRESS_Keithley = 11  # Keithley2000のGPIB番号
 COMPORT_LinkamT95 = "COM3"  # Linkamのシリアルポート番号 (シリアルポートの確認はデバイスマネージャーからできる(はず))
 
@@ -105,7 +101,7 @@ def start():  # 最初に1回だけ実行される処理
 
 def update():  # 測定中に何度も実行される処理
     data = get_data()  # データ取得
-    if data.time > 10 * 60 * 60:  # 5時間経ったら勝手に終了するように
+    if data.time > 10 * 60 * 60:  # 10時間経ったら勝手に終了するように
         return False  # Falseを返すと終了する. それ以外のときはupdateを繰り返し続ける
     save(data)  # セーブ
     plot(
@@ -117,14 +113,18 @@ def get_data():  # 実際に測定してる部分
     global count
     elapsed_time = time.time() - start_time
 
-    frequency = pow(10, 3 + count * 0.2)  # 周波数は10の(3+count*0.2)乗 (今回は3乗から6乗まで)
+    frequency = pow(
+        10, 3 + count * 0.2
+    )  # 周波数は10の(3+count*0.2)乗 (今回は3乗から6乗まで)
     LCR.write("FREQ " + str(frequency))  # 周波数設定
 
     time.sleep(0.5)  # 0.5秒待つ
 
     lcr_ans = LCR.query("FETC?")  # LCRのデータ読み取り(lcr_ansはコンマ区切りの文字列)
     array_string = lcr_ans.split(",")  # コンマでわけて配列にする
-    capacitance = float(array_string[0])  # 配列の0番目(今回は静電容量)を文字列から少数に
+    capacitance = float(
+        array_string[0]
+    )  # 配列の0番目(今回は静電容量)を文字列から少数に
     tan_delta = float(array_string[1])  # 配列の1番目(今回はtanδ)を文字列から少数に
 
     permittivity_real = (
@@ -137,7 +137,9 @@ def get_data():  # 実際に測定してる部分
 
     count = (count + 1) % 16  # countを1進める(16までいったら0に戻す)
 
-    hc = heating_cooling_checker.check(elapsed_time, temperature)  # heatingかcoolingかを判定
+    hc = heating_cooling_checker.check(
+        elapsed_time, temperature
+    )  # heatingかcoolingかを判定
     # データに中身を入れて返す
     return Data(
         time=elapsed_time,
@@ -162,12 +164,10 @@ def split(filepath):  # 測定ファイルを周波数分割
         colum_num=1,
         do_count=False,
         filename_formatter=lambda x: "1E{:.2f}Hz".format(math.log10(x)),
-    ).create(
-        delimiter="\t"
-    )
+    ).create(delimiter="\t")
 
 
-class HeatingCooligChecker:
+class HeatingCoolingChecker:
     """
     温度変化をチェックするクラス
     温度変化判定プログラムの設計上、温度変化直後の時間は判定できないのでデータが切れてしまう。
@@ -187,7 +187,9 @@ class HeatingCooligChecker:
 
     def check(self, time: float, temperature: float) -> str:
         """温度変化判定"""
-        if self.__pre_time is None:  # 最初はpre_timeとpre_tempがNoneなのでそのまま値を入れる
+        if (
+            self.__pre_time is None
+        ):  # 最初はpre_timeとpre_tempがNoneなのでそのまま値を入れる
             self.__pre_time = time
             self.__pre_temp = temperature
 
@@ -198,14 +200,18 @@ class HeatingCooligChecker:
             T_speed = (temperature - self.__pre_temp) / (
                 time - self.__pre_time
             )  # 温度変化速度を計算
-            if abs(T_speed) > self.T_SPEED_THREAHOLD:  # 温度変化が一定以上なら judgeに値を入れる
+            if (
+                abs(T_speed) > self.T_SPEED_THREAHOLD
+            ):  # 温度変化が一定以上なら judgeに値を入れる
                 judge = f"{'heating' if T_speed > 0 else 'cooling'}"
 
             self.__pre_time = time  # 新しい時間と温度の値を入れる
             self.__pre_temp = temperature
 
         if judge is not None:
-            if judge != self.__pre_judge:  # 前回とheating,coolingが変化していればstepを増やす
+            if (
+                judge != self.__pre_judge
+            ):  # 前回とheating,coolingが変化していればstepを増やす
                 self.__step += 1
         else:
             judge = self.__pre_judge  # 前回から時間が経過していない場合や温度変化がない場合には前回の値を入れる
@@ -215,4 +221,4 @@ class HeatingCooligChecker:
         return f"{self.__step}_{judge}"
 
 
-heating_cooling_checker = HeatingCooligChecker()
+heating_cooling_checker = HeatingCoolingChecker()
